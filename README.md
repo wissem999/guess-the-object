@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # guess_the_object
 
 A new Flutter project.
@@ -15,3 +16,6 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+=======
+# guess-the-object
+>>>>>>> f397624ed0501bd83dc321cb17545e033cfd521f
