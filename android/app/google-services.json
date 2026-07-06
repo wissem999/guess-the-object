@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "267529989039",
+    "project_id": "guess-the-object-2f17e",
+    "storage_bucket": "guess-the-object-2f17e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:267529989039:android:569ad367f80e31cf559d5a",
+        "android_client_info": {
+          "package_name": "guess.the_object"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "267529989039-fvdu9lgbq760vv7fih45r947h7ug4noi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD2huCpcZOHx8_bx00vHRUOViZ2cIi5o7M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "267529989039-fvdu9lgbq760vv7fih45r947h7ug4noi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
