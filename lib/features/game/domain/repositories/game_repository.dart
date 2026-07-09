@@ -1,7 +1,14 @@
 import '../entities/game_state.dart';
 
 abstract class GameRepository {
-  Future<String> startGame(String roomCode, String p1ObjectId, String p2ObjectId);
+  Future<String> startGame({
+    required String roomCode,
+    required String categoryId,
+    required String player1Id,
+    required String player2Id,
+    required String p1ObjectId,
+    required String p2ObjectId,
+  });
   Stream<GameState> watchGame(String gameId);
   Future<void> submitTurn(String gameId, String playerId, String question);
   Future<void> submitAnswer(String gameId, String turnKey, String answer);

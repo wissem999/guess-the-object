@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/errors/failures.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../providers/room_providers.dart';
 
 class JoinRoomPage extends ConsumerStatefulWidget {
   const JoinRoomPage({super.key});
@@ -11,6 +15,7 @@ class JoinRoomPage extends ConsumerStatefulWidget {
 
 class _JoinRoomPageState extends ConsumerState<JoinRoomPage> {
   final _codeCtrl = TextEditingController();
+  bool _joining = false;
 
   @override
   void dispose() {
@@ -46,18 +51,55 @@ class _JoinRoomPageState extends ConsumerState<JoinRoomPage> {
                 hintText: 'ABC123',
                 counterText: '',
               ),
+              inputFormatters: [
+                TextInputFormatter.withFunction((oldValue, newValue) {
+                  return TextEditingValue(
+                    text: newValue.text.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), ''),
+                    selection: newValue.selection,
+                  );
+                }),
+              ],
             ),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  final code = _codeCtrl.text.trim().toUpperCase();
-                  if (code.length == 6) {
-                    context.push('/waiting-room/$code');
-                  }
-                },
-                child: const Text('Join Room'),
+                onPressed: _joining
+                    ? null
+                    : () async {
+                        final code = _codeCtrl.text.trim().toUpperCase();
+                        if (code.length != 6) return;
+                        setState(() => _joining = true);
+                        final player =
+                            ref.read(authStateProvider).valueOrNull;
+                        if (player == null) return;
+                        try {
+                          await ref
+                              .read(roomActionsProvider)
+                              .joinRoom(code, player.id);
+                          if (context.mounted) {
+                            context.push('/waiting-room/$code');
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            final msg = e is ServerFailure
+                                ? e.message
+                                : e.toString();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(msg)),
+                            );
+                          }
+                        } finally {
+                          if (mounted) setState(() => _joining = false);
+                        }
+                      },
+                child: _joining
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Join Room'),
               ),
             ),
           ],

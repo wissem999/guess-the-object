@@ -2,10 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../providers/report_providers.dart';
 
 class ReportPage extends ConsumerStatefulWidget {
   final String matchId;
-  const ReportPage({super.key, required this.matchId});
+  final String reportedPlayerId;
+  final String categoryId;
+  const ReportPage({
+    super.key,
+    required this.matchId,
+    required this.reportedPlayerId,
+    required this.categoryId,
+  });
 
   @override
   ConsumerState<ReportPage> createState() => _ReportPageState();
@@ -40,17 +49,17 @@ class _ReportPageState extends ConsumerState<ReportPage> {
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 12),
-
-          // Reason picker
-          ..._reasons.map((reason) => RadioListTile<String>(
-                title: Text(reason.replaceAll('_', ' ').toUpperCase()),
-                value: reason,
-                groupValue: _selectedReason,
-                onChanged: (v) => setState(() => _selectedReason = v),
-              )),
+          RadioGroup<String>(
+            groupValue: _selectedReason,
+            onChanged: (v) => setState(() => _selectedReason = v),
+            child: Column(
+              children: _reasons.map((reason) => RadioListTile<String>(
+                    title: Text(reason.replaceAll('_', ' ').toUpperCase()),
+                    value: reason,
+                  )).toList(),
+            ),
+          ),
           const SizedBox(height: 16),
-
-          // Description
           TextField(
             controller: _descCtrl,
             maxLines: 4,
@@ -60,8 +69,6 @@ class _ReportPageState extends ConsumerState<ReportPage> {
             ),
           ),
           const SizedBox(height: 16),
-
-          // Match info
           Card(
             child: Padding(
               padding: const EdgeInsets.all(12),
@@ -72,7 +79,8 @@ class _ReportPageState extends ConsumerState<ReportPage> {
                   Expanded(
                     child: Text(
                       'Match ID: ${widget.matchId}',
-                      style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                      style: TextStyle(
+                          color: AppTheme.textSecondary, fontSize: 12),
                     ),
                   ),
                 ],
@@ -80,23 +88,47 @@ class _ReportPageState extends ConsumerState<ReportPage> {
             ),
           ),
           const SizedBox(height: 24),
-
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: _selectedReason == null
                   ? null
-                  : () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Report submitted. Admin will review.')),
-                      );
-                      context.pop();
-                    },
+                  : () => _submitReport(context),
               child: const Text('Submit Report'),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _submitReport(BuildContext context) async {
+    final player = ref.read(authStateProvider).valueOrNull;
+    if (player == null) return;
+
+    try {
+      await ref.read(reportActionsProvider).submitReport(
+            reporterId: player.id,
+            reportedPlayerId: widget.reportedPlayerId,
+            matchId: widget.matchId,
+            categoryId: widget.categoryId,
+            reason: _selectedReason!,
+            description: _descCtrl.text.trim(),
+            reporterName: player.name,
+          );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Report submitted. Admin will review.')),
+        );
+        context.pop();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to submit: $e')),
+        );
+      }
+    }
   }
 }

@@ -69,11 +69,29 @@ class FirestoreDataSource {
     return snapshot.docs.map((d) => {...d.data(), 'id': d.id}).toList();
   }
 
+  Future<Map<String, dynamic>?> getObjectById(String objectId) async {
+    final doc = await _firestore
+        .collection(FirebaseConstants.objectsCollection)
+        .doc(objectId)
+        .get();
+    if (!doc.exists) return null;
+    return {...doc.data()!, 'id': doc.id};
+  }
+
   // ── Match History ────────────────────────────────────────
   Future<void> saveMatchRecord(Map<String, dynamic> data) async {
     await _firestore
         .collection(FirebaseConstants.matchesCollection)
         .add(data);
+  }
+
+  Future<Map<String, dynamic>?> getMatchDocument(String matchId) async {
+    final doc = await _firestore
+        .collection(FirebaseConstants.matchesCollection)
+        .doc(matchId)
+        .get();
+    if (!doc.exists) return null;
+    return {...doc.data()!, 'id': doc.id};
   }
 
   Future<List<Map<String, dynamic>>> getMatchHistory(String userId) async {

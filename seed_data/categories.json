@@ -1,0 +1,40 @@
+{
+  "categories": {
+    "animals": {
+      "name": "Animals",
+      "description": "From pets to wild beasts",
+      "iconUrl": "",
+      "order": 1
+    },
+    "food": {
+      "name": "Food & Drinks",
+      "description": "Things you can eat or drink",
+      "iconUrl": "",
+      "order": 2
+    },
+    "technology": {
+      "name": "Technology",
+      "description": "Gadgets and devices",
+      "iconUrl": "",
+      "order": 3
+    },
+    "sports": {
+      "name": "Sports",
+      "description": "Sports equipment and gear",
+      "iconUrl": "",
+      "order": 4
+    },
+    "vehicles": {
+      "name": "Vehicles",
+      "description": "Things that move",
+      "iconUrl": "",
+      "order": 5
+    },
+    "home": {
+      "name": "Home Items",
+      "description": "Everything at home",
+      "iconUrl": "",
+      "order": 6
+    }
+  }
+}

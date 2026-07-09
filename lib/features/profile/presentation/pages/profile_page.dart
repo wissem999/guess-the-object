@@ -118,7 +118,6 @@ class ProfilePage extends ConsumerWidget {
               onPressed: () async {
                 try {
                   await ref.read(authActionsProvider).signOut();
-                  if (context.mounted) context.go('/login');
                 } catch (e) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(

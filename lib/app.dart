@@ -24,9 +24,16 @@ class _GuessTheObjectAppState extends ConsumerState<GuessTheObjectApp> {
         if (!_initialized) {
           _initialized = true;
           _wasLoggedIn = loggedIn;
-        } else if (_wasLoggedIn && !loggedIn) {
-          WidgetsBinding.instance
-              .addPostFrameCallback((_) => goLogin());
+          return;
+        }
+        if (_wasLoggedIn != loggedIn) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (loggedIn) {
+              goLobby();
+            } else {
+              goLogin();
+            }
+          });
         }
         _wasLoggedIn = loggedIn;
       }

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head><title>Seed Firestore Data</title></head>
+<body>
+<h2>Seeding Firestore...</h2>
+<pre id="log"></pre>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const log = document.getElementById("log");
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDIU8EchMuxZrSNMYZA4UN6caiG-922rpY",
+  authDomain: "guess-the-object-2f17e.firebaseapp.com",
+  projectId: "guess-the-object-2f17e",
+  storageBucket: "guess-the-object-2f17e.firebasestorage.app",
+  messagingSenderId: "267529989039",
+  appId: "1:267529989039:web:34840e655aaf7f25559d5a"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+await signInAnonymously(auth);
+log.textContent += "✓ Authenticated anonymously\n";
+
+const categories = {
+  animals: { name: "Animals", description: "From pets to wild beasts", iconUrl: "", order: 1 },
+  food: { name: "Food & Drinks", description: "Things you can eat or drink", iconUrl: "", order: 2 },
+  technology: { name: "Technology", description: "Gadgets and devices", iconUrl: "", order: 3 },
+  sports: { name: "Sports", description: "Sports equipment and gear", iconUrl: "", order: 4 },
+  vehicles: { name: "Vehicles", description: "Things that move", iconUrl: "", order: 5 },
+  home: { name: "Home Items", description: "Everything at home", iconUrl: "", order: 6 },
+};
+
+for (const [id, data] of Object.entries(categories)) {
+  await setDoc(doc(db, "categories", id), data);
+  log.textContent += `✓ Category: ${data.name}\n`;
+}
+
+const objects = {
+  elephant: { name: "Elephant", categoryId: "animals" },
+  dog: { name: "Dog", categoryId: "animals" },
+  cat: { name: "Cat", categoryId: "animals" },
+  eagle: { name: "Eagle", categoryId: "animals" },
+  shark: { name: "Shark", categoryId: "animals" },
+  snake: { name: "Snake", categoryId: "animals" },
+  penguin: { name: "Penguin", categoryId: "animals" },
+  lion: { name: "Lion", categoryId: "animals" },
+  pizza: { name: "Pizza", categoryId: "food" },
+  coffee: { name: "Coffee", categoryId: "food" },
+  burger: { name: "Burger", categoryId: "food" },
+  sushi: { name: "Sushi", categoryId: "food" },
+  ice_cream: { name: "Ice Cream", categoryId: "food" },
+  apple: { name: "Apple", categoryId: "food" },
+  pasta: { name: "Pasta", categoryId: "food" },
+  chocolate: { name: "Chocolate", categoryId: "food" },
+  smartphone: { name: "Smartphone", categoryId: "technology" },
+  laptop: { name: "Laptop", categoryId: "technology" },
+  headphones: { name: "Headphones", categoryId: "technology" },
+  camera: { name: "Camera", categoryId: "technology" },
+  drone: { name: "Drone", categoryId: "technology" },
+  smartwatch: { name: "Smartwatch", categoryId: "technology" },
+  tablet: { name: "Tablet", categoryId: "technology" },
+  printer: { name: "Printer", categoryId: "technology" },
+  football: { name: "Football", categoryId: "sports" },
+  basketball: { name: "Basketball", categoryId: "sports" },
+  tennis_racket: { name: "Tennis Racket", categoryId: "sports" },
+  bicycle: { name: "Bicycle", categoryId: "sports" },
+  skateboard: { name: "Skateboard", categoryId: "sports" },
+  baseball_bat: { name: "Baseball Bat", categoryId: "sports" },
+  golf_club: { name: "Golf Club", categoryId: "sports" },
+  surfboard: { name: "Surfboard", categoryId: "sports" },
+  car: { name: "Car", categoryId: "vehicles" },
+  airplane: { name: "Airplane", categoryId: "vehicles" },
+  motorcycle: { name: "Motorcycle", categoryId: "vehicles" },
+  train: { name: "Train", categoryId: "vehicles" },
+  boat: { name: "Boat", categoryId: "vehicles" },
+  helicopter: { name: "Helicopter", categoryId: "vehicles" },
+  bus: { name: "Bus", categoryId: "vehicles" },
+  scooter: { name: "Scooter", categoryId: "vehicles" },
+  refrigerator: { name: "Refrigerator", categoryId: "home" },
+  microwave: { name: "Microwave", categoryId: "home" },
+  vacuum: { name: "Vacuum Cleaner", categoryId: "home" },
+  washing_machine: { name: "Washing Machine", categoryId: "home" },
+  lamp: { name: "Lamp", categoryId: "home" },
+  clock: { name: "Clock", categoryId: "home" },
+  toaster: { name: "Toaster", categoryId: "home" },
+  tv: { name: "Television", categoryId: "home" },
+};
+
+let i = 0;
+for (const [id, data] of Object.entries(objects)) {
+  await setDoc(doc(db, "objects", id), data);
+  i++;
+  if (i % 10 === 0) log.textContent += `✓ ${i} objects...\n`;
+}
+
+log.textContent += `\n✅ Done! 6 categories + 48 objects seeded.\n`;
+log.textContent += `Close this tab and run the app.\n`;
+</script>
+</body>
+</html>

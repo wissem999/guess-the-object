@@ -1,15 +1,26 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/player.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../data/datasources/firebase_auth_datasource.dart';
+import '../../data/models/player_dto.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../../lobby/data/datasources/category_datasource.dart';
 
 // ── Data Source Provider ──────────────────────────────────
 final firebaseAuthDataSourceProvider = Provider<FirebaseAuthDataSource>((ref) {
   return FirebaseAuthDataSource();
+});
+
+final firebaseDatabaseProvider = Provider<FirebaseDatabase>((ref) {
+  return FirebaseDatabase.instanceFor(
+    app: Firebase.app(),
+    databaseURL: dotenv.env['FIREBASE_DATABASE_URL'],
+  );
 });
 
 final firestoreDataSourceProvider = Provider<FirestoreDataSource>((ref) {
@@ -71,4 +82,9 @@ class AuthActions {
 // Simple provider for current user ID
 final currentUserIdProvider = Provider<String?>((ref) {
   return ref.watch(authStateProvider).valueOrNull?.id;
+});
+
+// Watch any player by ID (name, photo, rating, etc.)
+final playerDtoStreamProvider = StreamProvider.family<PlayerDto?, String>((ref, userId) {
+  return ref.watch(firestoreDataSourceProvider).watchPlayer(userId);
 });

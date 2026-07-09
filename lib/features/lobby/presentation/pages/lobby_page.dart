@@ -3,18 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../features/auth/presentation/providers/auth_providers.dart';
-import '../providers/lobby_providers.dart';
-
-final dummyCategoriesProvider = Provider<List<Map<String, dynamic>>>((ref) {
-  return [
-    {'id': 'animals', 'name': 'Animals', 'icon': Icons.pets, 'desc': 'From pets to wild beasts'},
-    {'id': 'food', 'name': 'Food & Drinks', 'icon': Icons.restaurant, 'desc': 'Things you can eat'},
-    {'id': 'tech', 'name': 'Technology', 'icon': Icons.computer, 'desc': 'Gadgets and devices'},
-    {'id': 'sports', 'name': 'Sports', 'icon': Icons.sports_tennis, 'desc': 'Sports equipment'},
-    {'id': 'vehicles', 'name': 'Vehicles', 'icon': Icons.directions_car, 'desc': 'Things that move'},
-    {'id': 'home', 'name': 'Home Items', 'icon': Icons.home, 'desc': 'Everything at home'},
-  ];
-});
 
 class LobbyPage extends ConsumerWidget {
   const LobbyPage({super.key});
@@ -22,8 +10,6 @@ class LobbyPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final player = ref.watch(authStateProvider).valueOrNull;
-    final categories = ref.watch(dummyCategoriesProvider);
-    final selectedCat = ref.watch(selectedCategoryProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -44,7 +30,6 @@ class LobbyPage extends ConsumerWidget {
             onPressed: () async {
               try {
                 await ref.read(authActionsProvider).signOut();
-                if (context.mounted) context.go('/login');
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -56,177 +41,100 @@ class LobbyPage extends ConsumerWidget {
           ),
         ],
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Player info header
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            color: AppTheme.primary.withValues(alpha: 0.1),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundImage: player?.photoUrl != null
-                      ? NetworkImage(player!.photoUrl!)
-                      : null,
-                  child: player?.photoUrl == null
-                      ? Text(player?.name.isNotEmpty == true
-                          ? player!.name[0].toUpperCase()
-                          : '?')
-                      : null,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        player?.name ?? 'Player',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      Text(
-                        'Rating: ${player?.rating ?? 1000} \u2022 ${player?.tier ?? 'Bronze'}',
-                        style: TextStyle(
-                          color: AppTheme.textSecondary,
-                          fontSize: 13,
-                        ),
-                      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      AppTheme.primary,
+                      AppTheme.primary.withValues(alpha: 0.6),
                     ],
                   ),
                 ),
-                if (player != null)
-                  Column(
-                    children: [
-                      Text(
-                        '${player.wins}W',
-                        style: const TextStyle(
-                          color: AppTheme.success,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        '${player.losses}L',
-                        style: const TextStyle(
-                          color: AppTheme.error,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-              ],
-            ),
-          ),
-
-          // Category section
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
-            child: Text(
-              'Pick a Category',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-          ),
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.all(16),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 1.1,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
+                child: const Icon(Icons.help_outline,
+                    size: 48, color: Colors.white),
               ),
-              itemCount: categories.length,
-              itemBuilder: (context, index) {
-                final cat = categories[index];
-                final isSelected = selectedCat == cat['id'];
-                return GestureDetector(
-                  onTap: () {
-                    ref.read(selectedCategoryProvider.notifier).state =
-                        isSelected ? null : cat['id'] as String;
-                  },
-                  child: Card(
-                    color: isSelected ? AppTheme.primary : null,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          cat['icon'] as IconData,
-                          size: 36,
-                          color: isSelected ? Colors.white : AppTheme.primary,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          cat['name'] as String,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: isSelected ? Colors.white : null,
-                          ),
-                        ),
-                        Text(
-                          cat['desc'] as String,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: isSelected
-                                ? Colors.white70
-                                : AppTheme.textSecondary,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+              const SizedBox(height: 24),
+              Text(
+                'Guess The Object',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Challenge a friend!',
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 15),
+              ),
+              const SizedBox(height: 48),
+              SizedBox(
+                width: double.infinity,
+                height: 64,
+                child: ElevatedButton.icon(
+                  onPressed: () => context.push('/host'),
+                  icon: const Icon(Icons.add_circle_outline, size: 28),
+                  label: const Text('Host a Game',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
                   ),
-                );
-              },
-            ),
-          ),
-
-          // Action buttons
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, -2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 64,
+                child: OutlinedButton.icon(
+                  onPressed: () => context.push('/join-room'),
+                  icon: const Icon(Icons.login, size: 28),
+                  label: const Text('Join a Game',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.primary,
+                    side: const BorderSide(color: AppTheme.primary, width: 2),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                  ),
+                ),
+              ),
+              if (player != null) ...[
+                const SizedBox(height: 48),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircleAvatar(
+                      radius: 16,
+                      backgroundImage: player.photoUrl != null
+                          ? NetworkImage(player.photoUrl!)
+                          : null,
+                      child: player.photoUrl == null
+                          ? Text(player.name.isNotEmpty
+                              ? player.name[0].toUpperCase()
+                              : '?')
+                          : null,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${player.name} \u2022 ${player.rating} \u2022 ${player.tier}',
+                      style: TextStyle(color: AppTheme.textSecondary),
+                    ),
+                  ],
                 ),
               ],
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: selectedCat == null
-                        ? null
-                        : () => context.push('/create-room'),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Create Room'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: selectedCat == null
-                        ? null
-                        : () => context.push('/join-room'),
-                    icon: const Icon(Icons.login),
-                    label: const Text('Join Room'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.secondary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
