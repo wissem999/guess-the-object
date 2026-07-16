@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:267529989039:android:569ad367f80e31cf559d5a",
         "android_client_info": {
-          "package_name": "guess.the_object"
+          "package_name": "com.guesstheobject.guess_the_object"
         }
       },
       "oauth_client": [
