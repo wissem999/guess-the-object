@@ -25,7 +25,7 @@ class FirebaseAuthDataSource {
       return await _auth.signInWithCredential(credential);
     } catch (e) {
       throw firebase_auth.FirebaseAuthException(
-        'google-sign-in-cancelled',
+        code: 'google-sign-in-cancelled',
         message: e.toString(),
       );
     }
@@ -57,10 +57,7 @@ class FirebaseAuthDataSource {
       return;
     }
     try {
-      final isSignedIn = await GoogleSignIn.instance.isSignedIn();
-      if (isSignedIn) {
-        await GoogleSignIn.instance.signOut();
-      }
+      await GoogleSignIn.instance.signOut();
     } catch (_) {}
     await _auth.signOut();
   }
