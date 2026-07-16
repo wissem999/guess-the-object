@@ -37,6 +37,7 @@ class _GuessTheObjectAppState extends ConsumerState<GuessTheObjectApp> {
         }
         _wasLoggedIn = loggedIn;
       }
+      refreshAuthRedirect();
     });
 
     return MaterialApp.router(

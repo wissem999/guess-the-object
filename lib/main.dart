@@ -22,9 +22,7 @@ void main() async {
   );
 
   if (!kIsWeb) {
-    await GoogleSignIn.instance.initialize(
-      clientId: dotenv.env['GOOGLE_WEB_CLIENT_ID'],
-    );
+    await GoogleSignIn.instance.initialize();
   }
 
   runApp(const ProviderScope(child: GuessTheObjectApp()));

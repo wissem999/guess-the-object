@@ -19,6 +19,7 @@ class GameRTDBDataSource {
   Future<String> createActiveGame(Map<String, dynamic> data) async {
     final ref = _db.ref().child(FirebaseConstants.activeGamesPath).push();
     await ref.set(data);
+    ref.onDisconnect().remove();
     return ref.key!;
   }
 

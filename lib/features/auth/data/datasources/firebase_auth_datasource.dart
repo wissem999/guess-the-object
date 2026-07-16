@@ -16,12 +16,19 @@ class FirebaseAuthDataSource {
       final provider = firebase_auth.GoogleAuthProvider();
       return await _auth.signInWithPopup(provider);
     }
-    final account = await GoogleSignIn.instance.authenticate();
-    final googleAuth = account.authentication;
-    final credential = firebase_auth.GoogleAuthProvider.credential(
-      idToken: googleAuth.idToken,
-    );
-    return await _auth.signInWithCredential(credential);
+    try {
+      final account = await GoogleSignIn.instance.authenticate();
+      final googleAuth = account.authentication;
+      final credential = firebase_auth.GoogleAuthProvider.credential(
+        idToken: googleAuth.idToken,
+      );
+      return await _auth.signInWithCredential(credential);
+    } catch (e) {
+      throw firebase_auth.FirebaseAuthException(
+        'google-sign-in-cancelled',
+        message: e.toString(),
+      );
+    }
   }
 
   Future<firebase_auth.UserCredential> signInWithEmail(
@@ -49,7 +56,12 @@ class FirebaseAuthDataSource {
       await _auth.signOut();
       return;
     }
-    await GoogleSignIn.instance.signOut();
+    try {
+      final isSignedIn = await GoogleSignIn.instance.isSignedIn();
+      if (isSignedIn) {
+        await GoogleSignIn.instance.signOut();
+      }
+    } catch (_) {}
     await _auth.signOut();
   }
 }

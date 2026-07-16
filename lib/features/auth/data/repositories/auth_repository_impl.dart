@@ -14,11 +14,19 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Stream<Player?> get currentUser {
-    return _authDataSource.authStateChanges().asyncExpand((firebaseUser) {
-      if (firebaseUser == null) return Stream.value(null);
-      return _firestoreDataSource
-          .watchPlayer(firebaseUser.uid)
-          .map((dto) => dto != null ? _toEntity(dto) : null);
+    return _authDataSource.authStateChanges().asyncMap((firebaseUser) async {
+      if (firebaseUser == null) return null;
+      try {
+        final dto = await _firestoreDataSource.getPlayer(firebaseUser.uid);
+        if (dto != null) return _toEntity(dto);
+      } catch (_) {}
+      return Player(
+        id: firebaseUser.uid,
+        name: firebaseUser.displayName ?? 'Player',
+        email: firebaseUser.email ?? '',
+        photoUrl: firebaseUser.photoURL,
+        createdAt: DateTime.now(),
+      );
     });
   }
 
@@ -29,6 +37,8 @@ class AuthRepositoryImpl implements AuthRepository {
       return await _handleSignIn(credential.user!);
     } on FirebaseAuthException catch (e) {
       throw AuthException(e.message ?? 'Google sign-in failed', code: e.code);
+    } catch (e) {
+      throw AuthException('Google sign-in failed: ${e.toString()}');
     }
   }
 

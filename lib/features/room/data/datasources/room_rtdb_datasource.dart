@@ -17,7 +17,9 @@ class RTDBDataSource {
   RTDBDataSource(this._db);
 
   Future<void> createRoom(String code, Map<String, dynamic> data) async {
-    await _db.ref().child('${FirebaseConstants.roomsPath}/$code').set(data);
+    final ref = _db.ref().child('${FirebaseConstants.roomsPath}/$code');
+    await ref.set(data);
+    ref.onDisconnect().remove();
   }
 
   Future<Map<String, dynamic>?> getRoomSnapshot(String code) async {
