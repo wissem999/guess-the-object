@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/providers/auth_providers.dart';
+import 'services/update_service.dart';
+import 'widgets/update_dialog.dart';
 
 class GuessTheObjectApp extends ConsumerStatefulWidget {
   const GuessTheObjectApp({super.key});
@@ -13,6 +15,18 @@ class GuessTheObjectApp extends ConsumerStatefulWidget {
 class _GuessTheObjectAppState extends ConsumerState<GuessTheObjectApp> {
   bool _wasLoggedIn = false;
   bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkForUpdate());
+  }
+
+  Future<void> _checkForUpdate() async {
+    final info = await UpdateService.checkForUpdate();
+    if (!mounted || info == null) return;
+    await UpdateDialog.show(context, info);
+  }
 
   @override
   Widget build(BuildContext context) {
