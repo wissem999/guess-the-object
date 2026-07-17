@@ -54,6 +54,8 @@ class AuthActions {
       return await _repository.signInWithGoogle();
     } on AuthException catch (e) {
       throw AuthFailure(e.message);
+    } catch (e) {
+      throw AuthFailure('Google sign-in failed: $e');
     }
   }
 
@@ -62,6 +64,8 @@ class AuthActions {
       return await _repository.signInWithEmail(email, password);
     } on AuthException catch (e) {
       throw AuthFailure(e.message);
+    } catch (e) {
+      throw AuthFailure('Sign-in failed: $e');
     }
   }
 
@@ -71,6 +75,8 @@ class AuthActions {
       return await _repository.registerWithEmail(email, password, name);
     } on AuthException catch (e) {
       throw AuthFailure(e.message);
+    } catch (e) {
+      throw AuthFailure('Registration failed: $e');
     }
   }
 

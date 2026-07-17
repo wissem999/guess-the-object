@@ -17,6 +17,8 @@ class GameState {
   final String? winnerId;
   final int createdAt;
   final int lastActivity;
+  final String? status;
+  final int? disconnectedAt;
 
   const GameState({
     required this.gameId,
@@ -33,6 +35,8 @@ class GameState {
     this.winnerId,
     required this.createdAt,
     required this.lastActivity,
+    this.status,
+    this.disconnectedAt,
   });
 }
 

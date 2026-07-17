@@ -21,6 +21,20 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
   bool _starting = false;
 
   @override
+  void initState() {
+    super.initState();
+    _markActive();
+  }
+
+  Future<void> _markActive() async {
+    try {
+      final rtdb = ref.read(rtdbDataSourceProvider);
+      await rtdb.cancelRoomOnDisconnect(widget.roomCode);
+      await rtdb.setRoomActive(widget.roomCode);
+    } catch (_) {}
+  }
+
+  @override
   Widget build(BuildContext context) {
     final player = ref.watch(authStateProvider).valueOrNull;
     final roomAsync = ref.watch(roomStreamProvider(widget.roomCode));

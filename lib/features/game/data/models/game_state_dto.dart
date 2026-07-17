@@ -12,6 +12,8 @@ class GameStateDto {
   final String? winnerId;
   final int createdAt;
   final int lastActivity;
+  final String? status;
+  final int? disconnectedAt;
 
   const GameStateDto({
     required this.roomCode,
@@ -27,6 +29,8 @@ class GameStateDto {
     this.winnerId,
     required this.createdAt,
     required this.lastActivity,
+    this.status,
+    this.disconnectedAt,
   });
 
   factory GameStateDto.fromJson(Map<String, dynamic> json) {
@@ -44,6 +48,8 @@ class GameStateDto {
       winnerId: json['winnerId'] as String?,
       createdAt: (json['createdAt'] as num).toInt(),
       lastActivity: (json['lastActivity'] as num).toInt(),
+      status: json['status'] as String?,
+      disconnectedAt: (json['disconnectedAt'] as num?)?.toInt(),
     );
   }
 
@@ -61,5 +67,7 @@ class GameStateDto {
         if (winnerId != null) 'winnerId': winnerId,
         'createdAt': createdAt,
         'lastActivity': lastActivity,
+        if (status != null) 'status': status,
+        if (disconnectedAt != null) 'disconnectedAt': disconnectedAt,
       };
 }

@@ -2,11 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_providers.dart';
 
-class LoginPage extends ConsumerWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends ConsumerState<LoginPage> {
+  bool _googleLoading = false;
+
+  Future<void> _signInWithGoogle() async {
+    if (_googleLoading) return;
+    setState(() => _googleLoading = true);
+    try {
+      await ref.read(authActionsProvider).signInWithGoogle();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _googleLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -66,19 +92,11 @@ class LoginPage extends ConsumerWidget {
                       children: [
                         _SocialButton(
                           icon: Icons.g_mobiledata,
-                          label: 'Continue with Google',
+                          label: _googleLoading ? 'Connecting...' : 'Continue with Google',
                           backgroundColor: Colors.white,
                           foregroundColor: const Color(0xFF1A1A2E),
-                          onTap: () async {
-                            try {
-                              await ref.read(authActionsProvider).signInWithGoogle();
-                            } catch (e) {
-                              if (!context.mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(e.toString())),
-                              );
-                            }
-                          },
+                          loading: _googleLoading,
+                          onTap: _signInWithGoogle,
                         ),
                         const SizedBox(height: 16),
                         const _OrDivider(),
@@ -88,7 +106,7 @@ class LoginPage extends ConsumerWidget {
                           label: 'Continue with Email',
                           backgroundColor: const Color(0xFF6C4EF8),
                           foregroundColor: Colors.white,
-                          onTap: () => _showEmailSheet(context, ref),
+                          onTap: () => _showEmailSheet(context),
                         ),
                       ],
                     ),
@@ -113,7 +131,7 @@ class LoginPage extends ConsumerWidget {
     );
   }
 
-  void _showEmailSheet(BuildContext context, WidgetRef ref) {
+  void _showEmailSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -121,7 +139,9 @@ class LoginPage extends ConsumerWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (_) => _EmailAuthSheet(ref: ref),
+      builder: (_) => Consumer(
+        builder: (ctx, ref, _) => _EmailAuthSheet(ref: ref),
+      ),
     );
   }
 }
@@ -217,6 +237,7 @@ class _SocialButton extends StatelessWidget {
   final Color backgroundColor;
   final Color foregroundColor;
   final VoidCallback onTap;
+  final bool loading;
 
   const _SocialButton({
     required this.icon,
@@ -224,6 +245,7 @@ class _SocialButton extends StatelessWidget {
     required this.backgroundColor,
     required this.foregroundColor,
     required this.onTap,
+    this.loading = false,
   });
 
   @override
@@ -232,12 +254,13 @@ class _SocialButton extends StatelessWidget {
       width: double.infinity,
       height: 52,
       child: ElevatedButton(
-        onPressed: onTap,
+        onPressed: loading ? null : onTap,
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
           foregroundColor: foregroundColor,
           elevation: 0,
           shadowColor: Colors.transparent,
+          disabledBackgroundColor: backgroundColor.withValues(alpha: 0.6),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
@@ -245,7 +268,14 @@ class _SocialButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 22),
+            if (loading)
+              const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            else
+              Icon(icon, size: 22),
             const SizedBox(width: 10),
             Text(
               label,
@@ -447,19 +477,31 @@ class _EmailAuthSheetState extends State<_EmailAuthSheet> {
   }
 
   Future<void> _submit() async {
+    final email = _emailCtrl.text.trim();
+    final pass = _passCtrl.text.trim();
+    if (email.isEmpty || pass.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all fields')),
+      );
+      return;
+    }
+    if (!_isLogin && _nameCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your name')),
+      );
+      return;
+    }
+
     setState(() => _loading = true);
     try {
       if (_isLogin) {
-        await widget.ref.read(authActionsProvider).signInWithEmail(
-          _emailCtrl.text,
-          _passCtrl.text,
-        );
+        await widget.ref.read(authActionsProvider).signInWithEmail(email, pass);
       } else {
         await widget.ref.read(authActionsProvider).registerWithEmail(
-          _emailCtrl.text,
-          _passCtrl.text,
-          _nameCtrl.text,
-        );
+              email,
+              pass,
+              _nameCtrl.text.trim(),
+            );
       }
       if (mounted) Navigator.pop(context);
     } catch (e) {

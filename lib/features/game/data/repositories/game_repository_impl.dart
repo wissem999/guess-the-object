@@ -266,6 +266,8 @@ class GameRepositoryImpl implements GameRepository {
       winnerId: dto.winnerId,
       createdAt: dto.createdAt,
       lastActivity: dto.lastActivity,
+      status: dto.status,
+      disconnectedAt: dto.disconnectedAt,
     );
   }
 

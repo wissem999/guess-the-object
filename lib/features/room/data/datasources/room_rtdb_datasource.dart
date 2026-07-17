@@ -18,8 +18,12 @@ class RTDBDataSource {
 
   Future<void> createRoom(String code, Map<String, dynamic> data) async {
     final ref = _db.ref().child('${FirebaseConstants.roomsPath}/$code');
-    await ref.set(data);
-    ref.onDisconnect().remove();
+    final roomData = {...data, 'status': 'active'};
+    await ref.set(roomData);
+    ref.onDisconnect().update({
+      'status': 'disconnected',
+      'disconnectedAt': ServerValue.timestamp,
+    });
   }
 
   Future<Map<String, dynamic>?> getRoomSnapshot(String code) async {
@@ -47,6 +51,20 @@ class RTDBDataSource {
         .ref()
         .child('${FirebaseConstants.roomsPath}/$code')
         .update(data);
+  }
+
+  Future<void> cancelRoomOnDisconnect(String code) async {
+    final ref = _db.ref().child('${FirebaseConstants.roomsPath}/$code');
+    ref.onDisconnect().cancel();
+  }
+
+  Future<void> setRoomActive(String code) async {
+    final ref = _db.ref().child('${FirebaseConstants.roomsPath}/$code');
+    ref.onDisconnect().update({
+      'status': 'disconnected',
+      'disconnectedAt': ServerValue.timestamp,
+    });
+    await ref.update({'status': 'active'});
   }
 
   Future<void> deleteRoom(String code) async {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -17,10 +18,26 @@ class GamePage extends ConsumerStatefulWidget {
 
 class _GamePageState extends ConsumerState<GamePage> {
   final _questionCtrl = TextEditingController();
+  Timer? _reconnectTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _markActive();
+  }
+
+  Future<void> _markActive() async {
+    try {
+      final rtdb = ref.read(gameRTDBDataSourceProvider);
+      await rtdb.cancelGameOnDisconnect(widget.gameId);
+      await rtdb.setGameActive(widget.gameId);
+    } catch (_) {}
+  }
 
   @override
   void dispose() {
     _questionCtrl.dispose();
+    _reconnectTimer?.cancel();
     super.dispose();
   }
 
@@ -32,11 +49,25 @@ class _GamePageState extends ConsumerState<GamePage> {
     return gameAsync.when(
       loading: () => Scaffold(
         appBar: AppBar(title: const Text('Game')),
-        body: const Center(child: CircularProgressIndicator()),
+        body: const Center(
+          child: Text('Loading game...', style: TextStyle(fontSize: 16)),
+        ),
       ),
       error: (e, _) => Scaffold(
         appBar: AppBar(title: const Text('Game')),
-        body: Center(child: Text('Error: $e')),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Error: $e'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => context.go('/lobby'),
+                child: const Text('Back to Lobby'),
+              ),
+            ],
+          ),
+        ),
       ),
       data: (game) {
         if (game.phase == GamePhase.finished) {
@@ -45,7 +76,9 @@ class _GamePageState extends ConsumerState<GamePage> {
           });
           return Scaffold(
             appBar: AppBar(title: const Text('Game')),
-            body: const Center(child: CircularProgressIndicator()),
+            body: const Center(
+              child: Text('Game over!', style: TextStyle(fontSize: 16)),
+            ),
           );
         }
 
@@ -64,10 +97,14 @@ class _GamePageState extends ConsumerState<GamePage> {
         final pendingTurnKey = needsAnswer ? 'turn_$pendingIdx' : null;
         final pendingQuestion = needsAnswer ? game.turns[pendingIdx].question : null;
 
+        final opponentId = game.player1Id == player?.id ? game.player2Id : game.player1Id;
+        final isOpponentDisconnected = game.status == 'disconnected';
+
         return Scaffold(
           appBar: AppBar(
             title: const Text('Game'),
             actions: [
+              _ConnectionIndicator(game: game, opponentId: opponentId),
               Container(
                 margin: const EdgeInsets.only(right: 12),
                 padding:
@@ -96,13 +133,13 @@ class _GamePageState extends ConsumerState<GamePage> {
                 color: AppTheme.darkBackground.withValues(alpha: 0.03),
                 child: Row(
                   children: [
-                    _OpponentAvatar(opponentId: game.player1Id == player?.id ? game.player2Id : game.player1Id),
+                    _OpponentAvatar(opponentId: opponentId),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _OpponentName(opponentId: game.player1Id == player?.id ? game.player2Id : game.player1Id),
+                          _OpponentName(opponentId: opponentId),
                           _MyObjectName(objectId: game.player1Id == player?.id ? game.p1ObjectId : game.p2ObjectId),
                         ],
                       ),
@@ -125,6 +162,11 @@ class _GamePageState extends ConsumerState<GamePage> {
                   ],
                 ),
               ),
+              if (isOpponentDisconnected)
+                _DisconnectedBanner(
+                  game: game,
+                  onReconnect: _markActive,
+                ),
               if (opponentGuessed)
                 Container(
                   width: double.infinity,
@@ -144,8 +186,8 @@ class _GamePageState extends ConsumerState<GamePage> {
                         ),
                       ),
                     ],
+                  ),
                 ),
-              ),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.all(16),
@@ -326,13 +368,15 @@ class _GamePageState extends ConsumerState<GamePage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
+          Icon(Icons.hourglass_top, size: 18, color: AppTheme.warning),
+          const SizedBox(width: 10),
+          Text(
+            message,
+            style: TextStyle(
+              color: AppTheme.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-          const SizedBox(width: 12),
-          Text(message),
         ],
       ),
     );
@@ -521,6 +565,144 @@ class _GamePageState extends ConsumerState<GamePage> {
           padding: const EdgeInsets.symmetric(vertical: 8),
         ),
         child: Text(label, style: const TextStyle(fontSize: 13)),
+      ),
+    );
+  }
+}
+
+class _ConnectionIndicator extends ConsumerWidget {
+  final GameState game;
+  final String opponentId;
+  const _ConnectionIndicator({required this.game, required this.opponentId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDisconnected = game.status == 'disconnected';
+    final color = isDisconnected ? AppTheme.error : AppTheme.success;
+    final icon = isDisconnected ? Icons.wifi_off : Icons.wifi;
+
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            isDisconnected ? 'Reconnecting' : 'Online',
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DisconnectedBanner extends ConsumerStatefulWidget {
+  final GameState game;
+  final VoidCallback onReconnect;
+  const _DisconnectedBanner({required this.game, required this.onReconnect});
+
+  @override
+  ConsumerState<_DisconnectedBanner> createState() => _DisconnectedBannerState();
+}
+
+class _DisconnectedBannerState extends ConsumerState<_DisconnectedBanner> {
+  int _secondsLeft = 60;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startCountdown();
+  }
+
+  void _startCountdown() {
+    _timer?.cancel();
+    _secondsLeft = 60;
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _secondsLeft--;
+        if (_secondsLeft <= 0) {
+          timer.cancel();
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_secondsLeft <= 0) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        color: AppTheme.error.withValues(alpha: 0.15),
+        child: Row(
+          children: [
+            const Icon(Icons.warning, color: AppTheme.error, size: 20),
+            const SizedBox(width: 8),
+            const Expanded(
+              child: Text(
+                'Opponent left the game',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  color: AppTheme.error,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      color: AppTheme.warning.withValues(alpha: 0.15),
+      child: Row(
+        children: [
+          const Icon(Icons.wifi_off, color: AppTheme.warning, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Opponent disconnected — reconnecting in ${_secondsLeft}s',
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 28,
+            height: 28,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              value: _secondsLeft / 60,
+              color: AppTheme.warning,
+              backgroundColor: AppTheme.warning.withValues(alpha: 0.2),
+            ),
+          ),
+        ],
       ),
     );
   }
