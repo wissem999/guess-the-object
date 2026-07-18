@@ -170,18 +170,56 @@ class _FriendRequestCard extends ConsumerWidget {
                   onPressed: () async {
                     final userId = ref.read(currentUserIdProvider);
                     if (userId == null) return;
-                    await ref.read(firestoreDataSourceProvider).acceptFriendRequest(
-                      requestId!, userId, fromId!,
-                    );
-                    ref.invalidate(friendsListProvider);
-                    ref.invalidate(friendRequestsProvider);
+                    try {
+                      await ref.read(firestoreDataSourceProvider).acceptFriendRequest(
+                        requestId!, userId, fromId!,
+                      );
+                      ref.invalidate(friendsListProvider);
+                      ref.invalidate(friendRequestsProvider);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Friend request accepted!'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Failed to accept: $e'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    }
                   },
                 ),
                 IconButton(
                   icon: const Icon(Icons.cancel, color: AppTheme.error),
                   onPressed: () async {
-                    await ref.read(firestoreDataSourceProvider).rejectFriendRequest(requestId!);
-                    ref.invalidate(friendRequestsProvider);
+                    try {
+                      await ref.read(firestoreDataSourceProvider).rejectFriendRequest(requestId!);
+                      ref.invalidate(friendRequestsProvider);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Friend request declined'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Failed to decline: $e'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    }
                   },
                 ),
               ],

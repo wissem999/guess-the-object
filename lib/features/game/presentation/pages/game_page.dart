@@ -28,10 +28,25 @@ class _GamePageState extends ConsumerState<GamePage> {
 
   Future<void> _markActive() async {
     try {
+      final player = ref.read(authStateProvider).valueOrNull;
+      if (player == null) return;
       final rtdb = ref.read(gameRTDBDataSourceProvider);
+      final gameSnap = await rtdb.getGameSnapshot(widget.gameId);
+      if (gameSnap == null) return;
+      final player1Id = gameSnap['player1Id'] as String;
       await rtdb.cancelGameOnDisconnect(widget.gameId);
-      await rtdb.setGameActive(widget.gameId);
-    } catch (_) {}
+      await rtdb.setPlayerActive(widget.gameId, player.id, player1Id);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Connection error: $e'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -98,13 +113,13 @@ class _GamePageState extends ConsumerState<GamePage> {
         final pendingQuestion = needsAnswer ? game.turns[pendingIdx].question : null;
 
         final opponentId = game.player1Id == player?.id ? game.player2Id : game.player1Id;
-        final isOpponentDisconnected = game.status == 'disconnected';
+        final isOpponentActive = game.player1Id == player?.id ? game.p2Active : game.p1Active;
 
         return Scaffold(
           appBar: AppBar(
             title: const Text('Game'),
             actions: [
-              _ConnectionIndicator(game: game, opponentId: opponentId),
+              _ConnectionIndicator(isOpponentActive: isOpponentActive),
               Container(
                 margin: const EdgeInsets.only(right: 12),
                 padding:
@@ -162,9 +177,10 @@ class _GamePageState extends ConsumerState<GamePage> {
                   ],
                 ),
               ),
-              if (isOpponentDisconnected)
+              if (!isOpponentActive)
                 _DisconnectedBanner(
                   game: game,
+                  currentPlayerId: player?.id ?? '',
                   onReconnect: _markActive,
                 ),
               if (opponentGuessed)
@@ -414,9 +430,23 @@ class _GamePageState extends ConsumerState<GamePage> {
                 child: SizedBox(
                   height: 48,
                   child: ElevatedButton(
-                    onPressed: () => ref
-                        .read(gameActionsProvider)
-                        .confirmGuess(widget.gameId, true),
+                    onPressed: () async {
+                      try {
+                        await ref
+                            .read(gameActionsProvider)
+                            .confirmGuess(widget.gameId, true);
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Failed to confirm: $e'),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          );
+                        }
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.error,
                       foregroundColor: Colors.white,
@@ -430,9 +460,23 @@ class _GamePageState extends ConsumerState<GamePage> {
                 child: SizedBox(
                   height: 48,
                   child: ElevatedButton(
-                    onPressed: () => ref
-                        .read(gameActionsProvider)
-                        .confirmGuess(widget.gameId, false),
+                    onPressed: () async {
+                      try {
+                        await ref
+                            .read(gameActionsProvider)
+                            .confirmGuess(widget.gameId, false);
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Failed to confirm: $e'),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          );
+                        }
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.success,
                       foregroundColor: Colors.white,
@@ -448,22 +492,46 @@ class _GamePageState extends ConsumerState<GamePage> {
     );
   }
 
-  void _submitQuestion(GameState game, String playerId) {
+  void _submitQuestion(GameState game, String playerId) async {
     final text = _questionCtrl.text.trim();
     if (text.isEmpty) return;
-    ref
-        .read(gameActionsProvider)
-        .submitTurn(widget.gameId, playerId, text);
-    _questionCtrl.clear();
+    try {
+      await ref
+          .read(gameActionsProvider)
+          .submitTurn(widget.gameId, playerId, text);
+      _questionCtrl.clear();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to send question: $e'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+    }
   }
 
-  void _submitAnswer(GameState game, String turnKey, String playerId) {
+  void _submitAnswer(GameState game, String turnKey, String playerId) async {
     final text = _questionCtrl.text.trim();
     if (text.isEmpty) return;
-    ref
-        .read(gameActionsProvider)
-        .submitAnswer(widget.gameId, turnKey, text);
-    _questionCtrl.clear();
+    try {
+      await ref
+          .read(gameActionsProvider)
+          .submitAnswer(widget.gameId, turnKey, text);
+      _questionCtrl.clear();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to send answer: $e'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+    }
   }
 
   void _showGuessDialog(String playerId) {
@@ -485,13 +553,25 @@ class _GamePageState extends ConsumerState<GamePage> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               final guess = ctrl.text.trim();
               if (guess.isNotEmpty) {
-                ref
-                    .read(gameActionsProvider)
-                    .makeGuess(widget.gameId, playerId, guess);
                 Navigator.pop(ctx);
+                try {
+                  await ref
+                      .read(gameActionsProvider)
+                      .makeGuess(widget.gameId, playerId, guess);
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to submit guess: $e'),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    );
+                  }
+                }
               }
             },
             child: const Text('Guess!'),
@@ -571,15 +651,13 @@ class _GamePageState extends ConsumerState<GamePage> {
 }
 
 class _ConnectionIndicator extends ConsumerWidget {
-  final GameState game;
-  final String opponentId;
-  const _ConnectionIndicator({required this.game, required this.opponentId});
+  final bool isOpponentActive;
+  const _ConnectionIndicator({required this.isOpponentActive});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDisconnected = game.status == 'disconnected';
-    final color = isDisconnected ? AppTheme.error : AppTheme.success;
-    final icon = isDisconnected ? Icons.wifi_off : Icons.wifi;
+    final color = isOpponentActive ? AppTheme.success : AppTheme.error;
+    final icon = isOpponentActive ? Icons.wifi : Icons.wifi_off;
 
     return Container(
       margin: const EdgeInsets.only(right: 8),
@@ -594,7 +672,7 @@ class _ConnectionIndicator extends ConsumerWidget {
           Icon(icon, size: 14, color: color),
           const SizedBox(width: 4),
           Text(
-            isDisconnected ? 'Reconnecting' : 'Online',
+            isOpponentActive ? 'Online' : 'Reconnecting',
             style: TextStyle(
               color: color,
               fontSize: 11,
@@ -609,8 +687,9 @@ class _ConnectionIndicator extends ConsumerWidget {
 
 class _DisconnectedBanner extends ConsumerStatefulWidget {
   final GameState game;
+  final String currentPlayerId;
   final VoidCallback onReconnect;
-  const _DisconnectedBanner({required this.game, required this.onReconnect});
+  const _DisconnectedBanner({required this.game, required this.currentPlayerId, required this.onReconnect});
 
   @override
   ConsumerState<_DisconnectedBanner> createState() => _DisconnectedBannerState();
@@ -638,9 +717,29 @@ class _DisconnectedBannerState extends ConsumerState<_DisconnectedBanner> {
         _secondsLeft--;
         if (_secondsLeft <= 0) {
           timer.cancel();
+          _autoWin();
         }
       });
     });
+  }
+
+  Future<void> _autoWin() async {
+    try {
+      await ref.read(gameActionsProvider).forfeitGame(
+        widget.game.gameId,
+        widget.currentPlayerId,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to claim win: $e'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -662,7 +761,7 @@ class _DisconnectedBannerState extends ConsumerState<_DisconnectedBanner> {
             const SizedBox(width: 8),
             const Expanded(
               child: Text(
-                'Opponent left the game',
+                'Opponent left — you win!',
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
@@ -685,7 +784,7 @@ class _DisconnectedBannerState extends ConsumerState<_DisconnectedBanner> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Opponent disconnected — reconnecting in ${_secondsLeft}s',
+              'Opponent disconnected — win in ${_secondsLeft}s',
               style: const TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 14,

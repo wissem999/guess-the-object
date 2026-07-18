@@ -14,5 +14,6 @@ abstract class GameRepository {
   Future<void> submitAnswer(String gameId, String turnKey, String answer);
   Future<void> makeGuess(String gameId, String playerId, String guessedObject);
   Future<void> confirmGuess(String gameId, bool isCorrect);
+  Future<void> forfeitGame(String gameId, String winnerId);
   Future<Map<String, dynamic>> getMatchDetail(String matchId);
 }

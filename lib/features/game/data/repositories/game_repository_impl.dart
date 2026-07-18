@@ -135,6 +135,29 @@ class GameRepositoryImpl implements GameRepository {
   }
 
   @override
+  Future<void> forfeitGame(String gameId, String winnerId) async {
+    try {
+      final snapshot = await _rtdb.getGameSnapshot(gameId);
+      if (snapshot == null) throw ServerException('Game not found');
+      final dto = GameStateDto.fromJson(snapshot);
+
+      final loserId = _otherPlayer(dto, winnerId);
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await _rtdb.updateGame(gameId, {
+        'phase': 'finished',
+        'winnerId': winnerId,
+        'lastActivity': now,
+      });
+
+      await _saveMatchToFirestore(dto, winnerId, loserId);
+      await _updateRatings(winnerId, loserId);
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException('Failed to forfeit game: $e');
+    }
+  }
+
+  @override
   Future<void> confirmGuess(String gameId, bool isCorrect) async {
     try {
       final snapshot = await _rtdb.getGameSnapshot(gameId);
@@ -266,8 +289,8 @@ class GameRepositoryImpl implements GameRepository {
       winnerId: dto.winnerId,
       createdAt: dto.createdAt,
       lastActivity: dto.lastActivity,
-      status: dto.status,
-      disconnectedAt: dto.disconnectedAt,
+      p1Active: dto.p1Active,
+      p2Active: dto.p2Active,
     );
   }
 

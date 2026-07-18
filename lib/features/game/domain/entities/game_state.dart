@@ -17,8 +17,8 @@ class GameState {
   final String? winnerId;
   final int createdAt;
   final int lastActivity;
-  final String? status;
-  final int? disconnectedAt;
+  final bool p1Active;
+  final bool p2Active;
 
   const GameState({
     required this.gameId,
@@ -35,8 +35,8 @@ class GameState {
     this.winnerId,
     required this.createdAt,
     required this.lastActivity,
-    this.status,
-    this.disconnectedAt,
+    this.p1Active = true,
+    this.p2Active = true,
   });
 }
 

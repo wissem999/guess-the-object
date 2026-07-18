@@ -83,4 +83,12 @@ class GameActions {
       throw ServerFailure(e.message);
     }
   }
+
+  Future<void> forfeitGame(String gameId, String winnerId) async {
+    try {
+      await _repo.forfeitGame(gameId, winnerId);
+    } on ServerException catch (e) {
+      throw ServerFailure(e.message);
+    }
+  }
 }

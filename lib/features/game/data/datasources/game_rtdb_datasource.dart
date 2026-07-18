@@ -18,12 +18,8 @@ class GameRTDBDataSource {
 
   Future<String> createActiveGame(Map<String, dynamic> data) async {
     final ref = _db.ref().child(FirebaseConstants.activeGamesPath).push();
-    final gameData = {...data, 'status': 'active'};
+    final gameData = {...data, 'p1Active': true, 'p2Active': true};
     await ref.set(gameData);
-    ref.onDisconnect().update({
-      'status': 'disconnected',
-      'disconnectedAt': ServerValue.timestamp,
-    });
     return ref.key!;
   }
 
@@ -32,13 +28,13 @@ class GameRTDBDataSource {
     ref.onDisconnect().cancel();
   }
 
-  Future<void> setGameActive(String gameId) async {
+  Future<void> setPlayerActive(String gameId, String playerId, String player1Id) async {
     final ref = _db.ref().child('${FirebaseConstants.activeGamesPath}/$gameId');
-    ref.onDisconnect().update({
-      'status': 'disconnected',
-      'disconnectedAt': ServerValue.timestamp,
-    });
-    await ref.update({'status': 'active'});
+    final isP1 = playerId == player1Id;
+    final field = isP1 ? 'p1Active' : 'p2Active';
+
+    ref.onDisconnect().update({field: false});
+    await ref.update({field: true});
   }
 
   Stream<Map<String, dynamic>?> watchGame(String gameId) {
