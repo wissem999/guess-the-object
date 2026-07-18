@@ -573,11 +573,26 @@ class _EmailAuthSheetState extends State<_EmailAuthSheet> {
       );
       return;
     }
-    if (!_isLogin && _nameAvailable != true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please choose an available name')),
-      );
-      return;
+    if (!_isLogin && _nameCtrl.text.trim().isNotEmpty && _nameAvailable != true) {
+      if (_nameAvailable == null) {
+        final ds = widget.ref.read(firestoreDataSourceProvider);
+        final taken = await ds.isUsernameTaken(_nameCtrl.text.trim());
+        if (!mounted) return;
+        if (taken) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('"${_nameCtrl.text.trim()}" is already taken'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please choose an available name')),
+        );
+        return;
+      }
     }
 
     setState(() => _loading = true);
