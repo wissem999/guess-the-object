@@ -46,7 +46,7 @@ class UpdateService {
 
       if (lastCheck != null) {
         final elapsed = Duration(milliseconds: now - lastCheck);
-        if (elapsed < _checkInterval) return null;
+        if (elapsed < const Duration(minutes: 5)) return null;
       }
 
       final response = await http
