@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
-  "apk_url": "https://github.com/wissem999/guess-the-object/releases/download/v1.0.0/app-release.apk",
-  "update_message": "Initial release"
+  "version": "1.0.1",
+  "apk_url": "https://github.com/wissem999/guess-the-object/releases/download/v1.0.1/app-release.apk",
+  "update_message": "Friends system, username validation, bug fixes"
 }

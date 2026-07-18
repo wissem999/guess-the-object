@@ -127,12 +127,13 @@ class FirestoreDataSource {
     return snapshot.docs.map((d) => {...d.data(), 'id': d.id}).toList();
   }
 
-  Future<void> sendFriendRequest(String fromId, String toId) async {
+  Future<void> sendFriendRequest(String fromId, String toId, {String? fromName}) async {
     await _firestore
         .collection(FirebaseConstants.friendRequestsCollection)
         .add({
       'fromId': fromId,
       'toId': toId,
+      'fromName': fromName ?? '',
       'status': 'pending',
       'createdAt': FieldValue.serverTimestamp(),
     });
@@ -194,6 +195,20 @@ class FirestoreDataSource {
         .where((d) => d.id != currentUserId)
         .map((d) => {...d.data(), 'id': d.id})
         .toList();
+  }
+
+  // ── Username Check ──────────────────────────────────────
+  Future<bool> isUsernameTaken(String name, {String? excludeUserId}) async {
+    final snapshot = await _firestore
+        .collection(FirebaseConstants.usersCollection)
+        .where('name', isEqualTo: name)
+        .limit(1)
+        .get();
+    if (snapshot.docs.isEmpty) return false;
+    if (excludeUserId != null) {
+      return !snapshot.docs.any((d) => d.id == excludeUserId);
+    }
+    return true;
   }
 
   // ── Reports ──────────────────────────────────────────────

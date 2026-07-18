@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_providers.dart';
@@ -307,12 +308,55 @@ class _EmailAuthSheetState extends State<_EmailAuthSheet> {
   bool _isLogin = true;
   bool _loading = false;
 
+  bool _nameChecking = false;
+  bool? _nameAvailable;
+  String? _nameMessage;
+  Timer? _nameDebounce;
+
   @override
   void dispose() {
     _emailCtrl.dispose();
     _passCtrl.dispose();
     _nameCtrl.dispose();
+    _nameDebounce?.cancel();
     super.dispose();
+  }
+
+  void _onNameChanged(String value) {
+    _nameDebounce?.cancel();
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      setState(() {
+        _nameAvailable = null;
+        _nameMessage = null;
+        _nameChecking = false;
+      });
+      return;
+    }
+    setState(() {
+      _nameChecking = true;
+      _nameAvailable = null;
+      _nameMessage = null;
+    });
+    _nameDebounce = Timer(const Duration(milliseconds: 600), () async {
+      try {
+        final ds = widget.ref.read(firestoreDataSourceProvider);
+        final taken = await ds.isUsernameTaken(trimmed);
+        if (!mounted) return;
+        setState(() {
+          _nameChecking = false;
+          _nameAvailable = !taken;
+          _nameMessage = taken ? '"$trimmed" is already taken' : '"$trimmed" is available!';
+        });
+      } catch (_) {
+        if (mounted) {
+          setState(() {
+            _nameChecking = false;
+            _nameAvailable = null;
+          });
+        }
+      }
+    });
   }
 
   @override
@@ -370,7 +414,7 @@ class _EmailAuthSheetState extends State<_EmailAuthSheet> {
             ),
           ),
           const SizedBox(height: 28),
-          if (!_isLogin)
+          if (!_isLogin) ...[
             TextField(
               controller: _nameCtrl,
               style: const TextStyle(color: Colors.white),
@@ -379,6 +423,22 @@ class _EmailAuthSheetState extends State<_EmailAuthSheet> {
                 hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
                 prefixIcon: Icon(Icons.person_outline,
                     color: Colors.white.withValues(alpha: 0.5)),
+                suffixIcon: _nameChecking
+                    ? const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : _nameAvailable != null
+                        ? Icon(
+                            _nameAvailable! ? Icons.check_circle : Icons.cancel,
+                            color: _nameAvailable! ? Colors.green : Colors.red,
+                            size: 22,
+                          )
+                        : null,
                 filled: true,
                 fillColor: Colors.white.withValues(alpha: 0.06),
                 border: OutlineInputBorder(
@@ -387,16 +447,33 @@ class _EmailAuthSheetState extends State<_EmailAuthSheet> {
                 ),
               ),
               textCapitalization: TextCapitalization.words,
+              onChanged: _onNameChanged,
             ),
-          if (!_isLogin) const SizedBox(height: 12),
+            if (_nameMessage != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 6, left: 4),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    _nameMessage!,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _nameAvailable! ? Colors.green : Colors.red,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            const SizedBox(height: 12),
+          ],
           TextField(
             controller: _emailCtrl,
             style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
               hintText: 'Email',
               hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
-              prefixIcon:
-                  Icon(Icons.email_outlined, color: Colors.white.withValues(alpha: 0.5)),
+              prefixIcon: Icon(Icons.email_outlined,
+                  color: Colors.white.withValues(alpha: 0.5)),
               filled: true,
               fillColor: Colors.white.withValues(alpha: 0.06),
               border: OutlineInputBorder(
@@ -413,8 +490,8 @@ class _EmailAuthSheetState extends State<_EmailAuthSheet> {
             decoration: InputDecoration(
               hintText: 'Password',
               hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
-              prefixIcon:
-                  Icon(Icons.lock_outline, color: Colors.white.withValues(alpha: 0.5)),
+              prefixIcon: Icon(Icons.lock_outline,
+                  color: Colors.white.withValues(alpha: 0.5)),
               filled: true,
               fillColor: Colors.white.withValues(alpha: 0.06),
               border: OutlineInputBorder(
@@ -434,7 +511,8 @@ class _EmailAuthSheetState extends State<_EmailAuthSheet> {
                 backgroundColor: const Color(0xFF6C4EF8),
                 foregroundColor: Colors.white,
                 elevation: 0,
-                disabledBackgroundColor: const Color(0xFF6C4EF8).withValues(alpha: 0.5),
+                disabledBackgroundColor:
+                    const Color(0xFF6C4EF8).withValues(alpha: 0.5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -459,7 +537,11 @@ class _EmailAuthSheetState extends State<_EmailAuthSheet> {
           ),
           const SizedBox(height: 16),
           TextButton(
-            onPressed: () => setState(() => _isLogin = !_isLogin),
+            onPressed: () => setState(() {
+              _isLogin = !_isLogin;
+              _nameAvailable = null;
+              _nameMessage = null;
+            }),
             child: Text(
               _isLogin
                   ? "Don't have an account? Sign up"
@@ -488,6 +570,12 @@ class _EmailAuthSheetState extends State<_EmailAuthSheet> {
     if (!_isLogin && _nameCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter your name')),
+      );
+      return;
+    }
+    if (!_isLogin && _nameAvailable != true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please choose an available name')),
       );
       return;
     }
