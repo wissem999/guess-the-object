@@ -7,6 +7,8 @@ import 'features/auth/presentation/providers/auth_providers.dart';
 import 'services/update_service.dart';
 import 'widgets/update_dialog.dart';
 
+final _updateChecked = ValueNotifier<bool>(false);
+
 class GuessTheObjectApp extends ConsumerStatefulWidget {
   const GuessTheObjectApp({super.key});
   @override
@@ -20,15 +22,6 @@ class _GuessTheObjectAppState extends ConsumerState<GuessTheObjectApp> {
   @override
   void initState() {
     super.initState();
-    if (!kIsWeb) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _checkForUpdate());
-    }
-  }
-
-  Future<void> _checkForUpdate() async {
-    final info = await UpdateService.checkForUpdate();
-    if (!mounted || info == null) return;
-    await UpdateDialog.show(context, info);
   }
 
   @override
@@ -63,6 +56,23 @@ class _GuessTheObjectAppState extends ConsumerState<GuessTheObjectApp> {
       darkTheme: AppTheme.dark,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
+      builder: (childContext, child) {
+        if (!kIsWeb && !_updateChecked.value) {
+          _updateChecked.value = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _checkForUpdate(childContext);
+          });
+        }
+        return child ?? const SizedBox.shrink();
+      },
     );
+  }
+
+  Future<void> _checkForUpdate(BuildContext ctx) async {
+    try {
+      final info = await UpdateService.checkForUpdate();
+      if (!mounted || info == null) return;
+      await UpdateDialog.show(ctx, info);
+    } catch (_) {}
   }
 }
