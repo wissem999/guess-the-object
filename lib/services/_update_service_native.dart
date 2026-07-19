@@ -6,7 +6,6 @@ import 'package:http/http.dart' as http;
 import 'package:open_filex/open_filex.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class UpdateInfo {
   final String version;
@@ -33,21 +32,11 @@ class UpdateService {
 
   static const _updateJsonUrl =
       'https://raw.githubusercontent.com/wissem999/guess-the-object/main/update.json';
-  static const _lastCheckKey = 'last_update_check_ms';
   static const _requestTimeout = Duration(seconds: 10);
 
   static Future<UpdateInfo?> checkForUpdate() async {
     if (kIsWeb) return null;
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final lastCheck = prefs.getInt(_lastCheckKey);
-      final now = DateTime.now().millisecondsSinceEpoch;
-
-      if (lastCheck != null) {
-        final elapsed = Duration(milliseconds: now - lastCheck);
-        if (elapsed < const Duration(minutes: 5)) return null;
-      }
-
       final response = await http
           .get(Uri.parse(_updateJsonUrl))
           .timeout(_requestTimeout);
@@ -64,11 +53,9 @@ class UpdateService {
       if (currentVersion == null) return null;
 
       if (!_isNewer(info.version, currentVersion)) {
-        await prefs.setInt(_lastCheckKey, now);
         return null;
       }
 
-      await prefs.setInt(_lastCheckKey, now);
       return info;
     } catch (_) {
       return null;
