@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/presentation/pages/email_auth_page.dart';
 import '../../features/lobby/presentation/pages/lobby_page.dart';
 import '../../features/game/presentation/pages/game_page.dart';
 import '../../features/game/presentation/pages/result_page.dart';
@@ -33,6 +34,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(path: '/login', builder: (_, _) => const LoginPage()),
+      GoRoute(path: '/email-auth', builder: (_, _) => const EmailAuthPage()),
       GoRoute(path: '/lobby', builder: (_, _) => const LobbyPage()),
       GoRoute(path: '/host', builder: (_, _) => const CreateRoomPage()),
       GoRoute(path: '/join-room', builder: (_, _) => const JoinRoomPage()),
