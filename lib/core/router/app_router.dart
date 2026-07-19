@@ -16,13 +16,13 @@ import '../../features/ranking/presentation/pages/friends_page.dart';
 import '../../features/ranking/presentation/pages/add_friend_page.dart';
 import '../../features/report/presentation/pages/report_page.dart';
 
-final _rootNavigatorKey = GlobalKey<NavigatorState>();
+final rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final _authRefreshNotifier = ValueNotifier(0);
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
-    navigatorKey: _rootNavigatorKey,
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/lobby',
     refreshListenable: _authRefreshNotifier,
     redirect: (context, state) {
@@ -56,8 +56,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   return router;
 });
 
-void goLogin() => _rootNavigatorKey.currentContext?.go('/login');
-void goLobby() => _rootNavigatorKey.currentContext?.go('/lobby');
+void goLogin() => rootNavigatorKey.currentContext?.go('/login');
+void goLobby() => rootNavigatorKey.currentContext?.go('/lobby');
 
 /// Notify GoRouter to re-evaluate redirects on auth change.
 void refreshAuthRedirect() => _authRefreshNotifier.value++;

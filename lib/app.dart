@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/router/app_router.dart';
@@ -6,8 +5,6 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/providers/auth_providers.dart';
 import 'services/update_service.dart';
 import 'widgets/update_dialog.dart';
-
-final _updateChecked = ValueNotifier<bool>(false);
 
 class GuessTheObjectApp extends ConsumerStatefulWidget {
   const GuessTheObjectApp({super.key});
@@ -18,11 +15,7 @@ class GuessTheObjectApp extends ConsumerStatefulWidget {
 class _GuessTheObjectAppState extends ConsumerState<GuessTheObjectApp> {
   bool _wasLoggedIn = false;
   bool _initialized = false;
-
-  @override
-  void initState() {
-    super.initState();
-  }
+  bool _updateChecked = false;
 
   @override
   Widget build(BuildContext context) {
@@ -57,10 +50,10 @@ class _GuessTheObjectAppState extends ConsumerState<GuessTheObjectApp> {
       routerConfig: router,
       debugShowCheckedModeBanner: false,
       builder: (childContext, child) {
-        if (!kIsWeb && !_updateChecked.value) {
-          _updateChecked.value = true;
+        if (!_updateChecked) {
+          _updateChecked = true;
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            _checkForUpdate(childContext);
+            _checkForUpdate();
           });
         }
         return child ?? const SizedBox.shrink();
@@ -68,11 +61,13 @@ class _GuessTheObjectAppState extends ConsumerState<GuessTheObjectApp> {
     );
   }
 
-  Future<void> _checkForUpdate(BuildContext ctx) async {
+  Future<void> _checkForUpdate() async {
     try {
       final info = await UpdateService.checkForUpdate();
       if (!mounted || info == null) return;
-      await UpdateDialog.show(ctx, info);
+      final navContext = rootNavigatorKey.currentContext;
+      if (navContext == null) return;
+      await UpdateDialog.show(navContext, info);
     } catch (_) {}
   }
 }
