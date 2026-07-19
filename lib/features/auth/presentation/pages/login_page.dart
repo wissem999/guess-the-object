@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/errors/failures.dart';
 import '../providers/auth_providers.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -18,13 +19,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     setState(() => _googleLoading = true);
     try {
       await ref.read(authActionsProvider).signInWithGoogle();
+    } on AuthFailure catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString()),
+          content: Text('Google sign-in failed: $e'),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: Colors.red.shade700,
         ),
       );
     } finally {
@@ -170,7 +182,7 @@ class _GameLogo extends StatelessWidget {
       ),
       child: const Center(
         child: Text(
-          '?',
+          '!',
           style: TextStyle(
             fontSize: 44,
             fontWeight: FontWeight.w900,
@@ -561,35 +573,79 @@ class _EmailAuthSheetState extends State<_EmailAuthSheet> {
   Future<void> _submit() async {
     final email = _emailCtrl.text.trim();
     final pass = _passCtrl.text.trim();
+
     if (email.isEmpty || pass.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all fields')),
+        const SnackBar(
+          content: Text('Please fill in all fields'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
+
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid email address'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    if (pass.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password must be at least 6 characters'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     if (!_isLogin && _nameCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your name')),
+        const SnackBar(
+          content: Text('Please enter your name'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
+
     if (!_isLogin && _nameCtrl.text.trim().isNotEmpty && _nameAvailable != true) {
       if (_nameAvailable == null) {
         final ds = widget.ref.read(firestoreDataSourceProvider);
-        final taken = await ds.isUsernameTaken(_nameCtrl.text.trim());
-        if (!mounted) return;
-        if (taken) {
+        try {
+          final taken = await ds.isUsernameTaken(_nameCtrl.text.trim());
+          if (!mounted) return;
+          if (taken) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('"${_nameCtrl.text.trim()}" is already taken'),
+                backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+            return;
+          }
+        } catch (e) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('"${_nameCtrl.text.trim()}" is already taken'),
-              backgroundColor: Colors.red,
+              content: Text('Could not check name: $e'),
+              behavior: SnackBarBehavior.floating,
             ),
           );
           return;
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please choose an available name')),
+          const SnackBar(
+            content: Text('Please choose an available name'),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
         return;
       }
@@ -607,13 +663,24 @@ class _EmailAuthSheetState extends State<_EmailAuthSheet> {
             );
       }
       if (mounted) Navigator.pop(context);
+    } on AuthFailure catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString()),
+          content: Text('Something went wrong: $e'),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: Colors.red.shade700,
         ),
       );
     } finally {

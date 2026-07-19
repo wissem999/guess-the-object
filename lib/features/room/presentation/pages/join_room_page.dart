@@ -68,7 +68,15 @@ class _JoinRoomPageState extends ConsumerState<JoinRoomPage> {
                     ? null
                     : () async {
                         final code = _codeCtrl.text.trim().toUpperCase();
-                        if (code.length != 6) return;
+                        if (code.length != 6) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Room code must be 6 characters'),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                          return;
+                        }
                         setState(() => _joining = true);
                         final player =
                             ref.read(authStateProvider).valueOrNull;
@@ -84,9 +92,13 @@ class _JoinRoomPageState extends ConsumerState<JoinRoomPage> {
                           if (context.mounted) {
                             final msg = e is ServerFailure
                                 ? e.message
-                                : e.toString();
+                                : 'Failed to join room: $e';
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(msg)),
+                              SnackBar(
+                                content: Text(msg),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
                             );
                           }
                         } finally {

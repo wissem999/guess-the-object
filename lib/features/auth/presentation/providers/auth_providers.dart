@@ -53,7 +53,7 @@ class AuthActions {
     try {
       return await _repository.signInWithGoogle();
     } on AuthException catch (e) {
-      throw AuthFailure(e.message);
+      throw AuthFailure(_friendlyMessage(e.code, e.message));
     } catch (e) {
       throw AuthFailure('Google sign-in failed: $e');
     }
@@ -63,7 +63,7 @@ class AuthActions {
     try {
       return await _repository.signInWithEmail(email, password);
     } on AuthException catch (e) {
-      throw AuthFailure(e.message);
+      throw AuthFailure(_friendlyMessage(e.code, e.message));
     } catch (e) {
       throw AuthFailure('Sign-in failed: $e');
     }
@@ -74,7 +74,7 @@ class AuthActions {
     try {
       return await _repository.registerWithEmail(email, password, name);
     } on AuthException catch (e) {
-      throw AuthFailure(e.message);
+      throw AuthFailure(_friendlyMessage(e.code, e.message));
     } catch (e) {
       throw AuthFailure('Registration failed: $e');
     }
@@ -82,6 +82,35 @@ class AuthActions {
 
   Future<void> signOut() async {
     await _repository.signOut();
+  }
+
+  static String _friendlyMessage(String? code, String fallback) {
+    switch (code) {
+      case 'user-not-found':
+        return 'No account found with this email';
+      case 'wrong-password':
+        return 'Incorrect password. Please try again';
+      case 'invalid-email':
+        return 'Invalid email format';
+      case 'user-disabled':
+        return 'This account has been disabled';
+      case 'email-already-in-use':
+        return 'This email is already registered. Try signing in';
+      case 'weak-password':
+        return 'Password must be at least 6 characters';
+      case 'invalid-credential':
+        return 'Invalid email or password. Please check and try again';
+      case 'too-many-requests':
+        return 'Too many attempts. Please wait a moment and try again';
+      case 'operation-not-allowed':
+        return 'This sign-in method is not enabled';
+      case 'network-request-failed':
+        return 'No internet connection. Check your network';
+      case 'google-sign-in-cancelled':
+        return 'Google sign-in was cancelled';
+      default:
+        return fallback;
+    }
   }
 }
 

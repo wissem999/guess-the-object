@@ -34,7 +34,6 @@ class UpdateService {
   static const _updateJsonUrl =
       'https://raw.githubusercontent.com/wissem999/guess-the-object/main/update.json';
   static const _lastCheckKey = 'last_update_check_ms';
-  static const _checkInterval = Duration(hours: 24);
   static const _requestTimeout = Duration(seconds: 10);
 
   static Future<UpdateInfo?> checkForUpdate() async {
