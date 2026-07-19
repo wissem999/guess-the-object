@@ -41,7 +41,10 @@ void main() async {
   );
 
   if (!kIsWeb) {
-    await GoogleSignIn.instance.initialize();
+    final serverClientId = _env('GOOGLE_WEB_CLIENT_ID');
+    await GoogleSignIn.instance.initialize(
+      serverClientId: serverClientId.isNotEmpty ? serverClientId : null,
+    );
   }
 
   runApp(const ProviderScope(child: GuessTheObjectApp()));

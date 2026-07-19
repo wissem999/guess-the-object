@@ -28,8 +28,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final user = ref.read(authStateProvider).valueOrNull;
       final onLogin = state.matchedLocation == '/login';
-      if (user == null && !onLogin) return '/login';
-      if (user != null && onLogin) return '/lobby';
+      final onEmailAuth = state.matchedLocation == '/email-auth';
+      final isPublicRoute = onLogin || onEmailAuth;
+      if (user == null && !isPublicRoute) return '/login';
+      if (user != null && (onLogin || onEmailAuth)) return '/lobby';
       return null;
     },
     routes: [

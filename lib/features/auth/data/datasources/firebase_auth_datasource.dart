@@ -18,11 +18,19 @@ class FirebaseAuthDataSource {
     }
     try {
       final account = await GoogleSignIn.instance.authenticate();
-      final googleAuth = account.authentication;
+      if (account == null) {
+        throw firebase_auth.FirebaseAuthException(
+          code: 'google-sign-in-cancelled',
+          message: 'Sign-in was cancelled',
+        );
+      }
+      final authentication = await account.authentication;
       final credential = firebase_auth.GoogleAuthProvider.credential(
-        idToken: googleAuth.idToken,
+        idToken: authentication.idToken,
       );
       return await _auth.signInWithCredential(credential);
+    } on firebase_auth.FirebaseAuthException {
+      rethrow;
     } catch (e) {
       throw firebase_auth.FirebaseAuthException(
         code: 'google-sign-in-cancelled',
