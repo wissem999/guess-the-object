@@ -1,7 +1,7 @@
 name: guess_the_object
 description: "Real-time multiplayer guessing game. Two players, one category, different objects. Ask questions, guess the object, win the match."
 publish_to: 'none'
-version: 1.0.9+10
+version: 1.1.0+11
 
 environment:
   sdk: ^3.11.5
@@ -42,7 +42,6 @@ dependencies:
   package_info_plus: ^8.0.0
   http: ^1.2.0
   path_provider: ^2.1.0
-  open_filex: ^4.7.0
   shared_preferences: ^2.3.0
 
 dev_dependencies:

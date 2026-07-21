@@ -22,6 +22,7 @@ class UpdateDialog extends StatefulWidget {
 
 class _UpdateDialogState extends State<UpdateDialog> {
   bool _downloading = false;
+  bool _installing = false;
   double _progress = 0.0;
   String? _errorMessage;
 
@@ -32,7 +33,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
       _errorMessage = null;
     });
 
-    final success = await UpdateService.downloadAndInstall(
+    final filePath = await UpdateService.downloadApk(
       widget.updateInfo.apkUrl,
       onProgress: (p) {
         if (mounted) setState(() => _progress = p);
@@ -41,18 +42,42 @@ class _UpdateDialogState extends State<UpdateDialog> {
 
     if (!mounted) return;
 
-    if (!success) {
+    if (filePath == null) {
       setState(() {
         _downloading = false;
-        _errorMessage = 'Download failed. Please try again later.';
+        _errorMessage = 'Download failed. Check your internet connection and try again.';
       });
+      return;
     }
+
+    // Download complete, now install
+    setState(() {
+      _downloading = false;
+      _installing = true;
+    });
+
+    final installed = await UpdateService.installApk(filePath);
+
+    if (!mounted) return;
+
+    if (!installed) {
+      setState(() {
+        _installing = false;
+        _errorMessage =
+            'Could not open installer. Go to Settings > Security > "
+            "Install unknown apps, then allow this app to install.';
+      });
+      return;
+    }
+
+    // Intent launched successfully — app will switch to installer
+    Navigator.of(context).pop(true);
   }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: !_downloading,
+      canPop: !_downloading && !_installing,
       child: AlertDialog(
         backgroundColor: const Color(0xFF120A2E),
         shape: RoundedRectangleBorder(
@@ -149,6 +174,25 @@ class _UpdateDialogState extends State<UpdateDialog> {
                 ),
               ),
             ],
+            if (_installing) ...[
+              const SizedBox(height: 24),
+              const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: Color(0xFF6C4EF8),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Opening installer...',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.white.withValues(alpha: 0.5),
+                ),
+              ),
+            ],
             if (_errorMessage != null) ...[
               const SizedBox(height: 16),
               Container(
@@ -158,6 +202,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(Icons.error_outline,
                         color: Colors.red.withValues(alpha: 0.8), size: 18),
@@ -178,7 +223,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
           ],
         ),
         actions: [
-          if (!_downloading) ...[
+          if (!_downloading && !_installing) ...[
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
               child: Text(

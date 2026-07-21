@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:open_filex/open_filex.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -33,6 +33,7 @@ class UpdateService {
   static const _updateJsonUrl =
       'https://raw.githubusercontent.com/wissem999/guess-the-object/main/update.json';
   static const _requestTimeout = Duration(seconds: 10);
+  static const _channel = MethodChannel('com.guesstheobject.apk_installer');
 
   static Future<UpdateInfo?> checkForUpdate() async {
     if (kIsWeb) return null;
@@ -62,15 +63,22 @@ class UpdateService {
     }
   }
 
-  static Future<bool> downloadAndInstall(
+  /// Downloads the APK and returns the file path on success, null on failure.
+  static Future<String?> downloadApk(
     String apkUrl, {
     void Function(double progress)? onProgress,
   }) async {
-    if (kIsWeb) return false;
+    if (kIsWeb) return null;
+
     try {
       final tempDir = await getTemporaryDirectory();
       final filePath = '${tempDir.path}/guess_the_object_update.apk';
       final file = File(filePath);
+
+      // Delete old APK if exists
+      if (await file.exists()) {
+        await file.delete();
+      }
 
       final client = http.Client();
       try {
@@ -79,7 +87,7 @@ class UpdateService {
               const Duration(minutes: 5),
             );
 
-        if (response.statusCode != 200) return false;
+        if (response.statusCode != 200) return null;
 
         final contentLength = response.contentLength ?? 0;
         var bytesReceived = 0;
@@ -100,8 +108,27 @@ class UpdateService {
 
       onProgress?.call(1.0);
 
-      final result = await OpenFilex.open(filePath);
-      return result.type == ResultType.done;
+      // Verify file was actually written
+      if (!await file.exists()) return null;
+      final size = await file.length();
+      if (size == 0) return null;
+
+      return filePath;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Opens the APK file with Android Package Installer via MethodChannel.
+  /// Returns true if the intent was launched successfully.
+  static Future<bool> installApk(String filePath) async {
+    if (kIsWeb) return false;
+    try {
+      final result = await _channel.invokeMethod<bool>(
+        'installApk',
+        {'filePath': filePath},
+      );
+      return result ?? false;
     } catch (_) {
       return false;
     }
