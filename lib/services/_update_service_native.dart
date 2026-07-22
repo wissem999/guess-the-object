@@ -80,31 +80,18 @@ class UpdateService {
         await file.delete();
       }
 
-      final client = http.Client();
-      try {
-        final request = http.Request('GET', Uri.parse(apkUrl));
-        final response = await client.send(request).timeout(
-              const Duration(minutes: 5),
-            );
+      onProgress?.call(0.01);
 
-        if (response.statusCode != 200) return null;
+      final response = await http.get(Uri.parse(apkUrl)).timeout(
+        const Duration(minutes: 10),
+        onTimeout: () async {
+          throw Exception('Download timed out');
+        },
+      );
 
-        final contentLength = response.contentLength ?? 0;
-        var bytesReceived = 0;
+      if (response.statusCode != 200) return null;
 
-        final sink = file.openWrite();
-        await for (final chunk in response.stream) {
-          sink.add(chunk);
-          bytesReceived += chunk.length;
-          if (contentLength > 0) {
-            onProgress?.call(bytesReceived / contentLength);
-          }
-        }
-        await sink.flush();
-        await sink.close();
-      } finally {
-        client.close();
-      }
+      await file.writeAsBytes(response.bodyBytes);
 
       onProgress?.call(1.0);
 

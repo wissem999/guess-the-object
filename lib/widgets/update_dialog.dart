@@ -166,7 +166,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
               Text(
                 _progress > 0
                     ? 'Downloading... ${(_progress * 100).toInt()}%'
-                    : 'Preparing download...',
+                    : 'Downloading...',
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.white.withValues(alpha: 0.5),
