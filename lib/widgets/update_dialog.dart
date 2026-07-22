@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../services/update_service.dart';
 
 class UpdateDialog extends StatefulWidget {
@@ -64,8 +63,8 @@ class _UpdateDialogState extends State<UpdateDialog> {
       setState(() {
         _installing = false;
         _errorMessage =
-            'Could not open installer. Go to Settings > Security > "
-            "Install unknown apps, then allow this app to install.';
+            'Could not open installer. Go to Settings > Security > '
+            'Install unknown apps, then allow this app to install.';
       });
       return;
     }
