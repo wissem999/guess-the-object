@@ -24,6 +24,25 @@ jobs:
         with:
           channel: stable
 
+      - name: Cache signing keystore
+        uses: actions/cache@v4
+        with:
+          path: keystore
+          key: release-keystore-v1
+
+      - name: Generate signing keystore if missing
+        run: |
+          if [ ! -f keystore/release.jks ]; then
+            mkdir -p keystore
+            keytool -genkeypair -v \
+              -keystore keystore/release.jks \
+              -alias guess_the_object \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass guessobject123 \
+              -keypass guessobject123 \
+              -dname "CN=Wissem, OU=Dev, O=GuessTheObject, L=Tunis, ST=Tunis, C=TN"
+          fi
+
       - name: Create .env file
         run: |
           cat > .env << EOF
