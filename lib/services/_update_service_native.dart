@@ -81,13 +81,32 @@ class UpdateService {
 
       onProgress?.call(-1);
 
-      final response = await http.get(Uri.parse(apkUrl)).timeout(
+      final client = http.Client();
+      final request = http.Request('GET', Uri.parse(apkUrl));
+      final response = await client.send(request).timeout(
         const Duration(minutes: 10),
       );
 
-      if (response.statusCode != 200) return null;
+      if (response.statusCode != 200) {
+        client.close();
+        return null;
+      }
 
-      await file.writeAsBytes(response.bodyBytes);
+      final contentLength = response.contentLength ?? 0;
+      int received = 0;
+      final sink = file.openWrite();
+
+      await for (final chunk in response.stream) {
+        sink.add(chunk);
+        received += chunk.length;
+        if (contentLength > 0) {
+          onProgress?.call(received / contentLength);
+        }
+      }
+
+      await sink.flush();
+      await sink.close();
+      client.close();
 
       onProgress?.call(1.0);
 

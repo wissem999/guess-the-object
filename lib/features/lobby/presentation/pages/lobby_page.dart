@@ -2,10 +2,85 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../features/auth/presentation/providers/auth_providers.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../ranking/presentation/pages/leaderboard_page.dart';
+import '../../../store/presentation/pages/store_page.dart';
+import '../../../profile/presentation/pages/profile_page.dart';
 
-class LobbyPage extends ConsumerWidget {
-  const LobbyPage({super.key});
+class MainShell extends ConsumerStatefulWidget {
+  const MainShell({super.key});
+
+  @override
+  ConsumerState<MainShell> createState() => _MainShellState();
+}
+
+class _MainShellState extends ConsumerState<MainShell> {
+  int _currentIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final tabs = [
+      const _PlayTab(),
+      const LeaderboardPage(),
+      const StorePage(),
+      const ProfilePage(),
+    ];
+
+    return Scaffold(
+      body: IndexedStack(
+        index: _currentIndex,
+        children: tabs,
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 12,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (i) => setState(() => _currentIndex = i),
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: const Color(0xFF0B0B1A),
+          selectedItemColor: AppTheme.primary,
+          unselectedItemColor: AppTheme.textSecondary,
+          selectedFontSize: 11,
+          unselectedFontSize: 11,
+          elevation: 0,
+          items: [
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.sports_esports),
+              activeIcon: Icon(Icons.sports_esports),
+              label: 'Play',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.leaderboard),
+              activeIcon: Icon(Icons.leaderboard),
+              label: 'Leaderboard',
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.store),
+              activeIcon: const Icon(Icons.store),
+              label: 'Store',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              activeIcon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PlayTab extends ConsumerWidget {
+  const _PlayTab();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -16,19 +91,9 @@ class LobbyPage extends ConsumerWidget {
         title: const Text('Guess The Object'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.leaderboard),
-            onPressed: () => context.push('/leaderboard'),
-            tooltip: 'Leaderboard',
-          ),
-          IconButton(
-            icon: const Icon(Icons.store),
-            onPressed: () => context.push('/store'),
-            tooltip: 'Store',
-          ),
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () => context.push('/profile'),
-            tooltip: 'Profile',
+            icon: const Icon(Icons.group),
+            onPressed: () => context.push('/friends'),
+            tooltip: 'Friends',
           ),
           IconButton(
             icon: const Icon(Icons.logout),

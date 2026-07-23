@@ -38,7 +38,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: '/login', builder: (_, _) => const LoginPage()),
       GoRoute(path: '/email-auth', builder: (_, _) => const EmailAuthPage()),
-      GoRoute(path: '/lobby', builder: (_, _) => const LobbyPage()),
+      GoRoute(path: '/lobby', builder: (_, _) => const MainShell()),
       GoRoute(path: '/host', builder: (_, _) => const CreateRoomPage()),
       GoRoute(path: '/join-room', builder: (_, _) => const JoinRoomPage()),
       GoRoute(path: '/waiting-room/:code', builder: (_, state) => WaitingRoomPage(roomCode: state.pathParameters['code']!)),

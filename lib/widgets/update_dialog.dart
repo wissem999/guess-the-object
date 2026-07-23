@@ -153,17 +153,20 @@ class _UpdateDialogState extends State<UpdateDialog> {
               const SizedBox(height: 24),
               ClipRRect(
                 borderRadius: BorderRadius.circular(6),
-                child: const LinearProgressIndicator(
+                child: LinearProgressIndicator(
                   minHeight: 6,
+                  value: _progress > 0 ? _progress.clamp(0.0, 1.0) : null,
                   backgroundColor: Colors.white,
-                  valueColor: AlwaysStoppedAnimation<Color>(
+                  valueColor: const AlwaysStoppedAnimation<Color>(
                     Color(0xFF6C4EF8),
                   ),
                 ),
               ),
               const SizedBox(height: 10),
               Text(
-                'Downloading update...',
+                _progress > 0
+                    ? 'Downloading... ${(_progress * 100).round()}%'
+                    : 'Downloading update...',
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.white.withValues(alpha: 0.5),
