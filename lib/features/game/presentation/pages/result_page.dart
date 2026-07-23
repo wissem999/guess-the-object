@@ -45,7 +45,7 @@ class _TierChangeDisplay extends StatelessWidget {
           width: 200,
           height: 8,
           decoration: BoxDecoration(
-            color: AppTheme.cardBg,
+            color: AppTheme.surface,
             borderRadius: BorderRadius.circular(4),
           ),
           child: FractionallySizedBox(

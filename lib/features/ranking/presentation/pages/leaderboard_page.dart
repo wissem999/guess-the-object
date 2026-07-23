@@ -196,7 +196,7 @@ class _PlayerCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: progress,
                 minHeight: 4,
-                backgroundColor: AppTheme.cardBg,
+                backgroundColor: AppTheme.surface,
                 valueColor: AlwaysStoppedAnimation<Color>(
                   isYou ? AppTheme.primary : AppTheme.textSecondary,
                 ),
