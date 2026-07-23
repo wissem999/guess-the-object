@@ -1,7 +1,5 @@
 {
-  "version": "1.1.2",
-  "apk_url": "https://github.com/wissem999/guess-the-object/releases/download/v1.1.2/app-release.apk",
-  "update_message": "Bug fixes and improvements",
-  "sha1": "05:92:79:21:2D:38:05:7E:E3:05:70:D2:60:87:87:77:60:B7:6E:7F",
-  "sha256": "0F:74:E4:49:C3:39:80:1A:31:7E:32:E8:79:7A:12:45:BC:97:BF:6F:CC:2A:25:2F:16:28:E7:DC:87:A9:24:CD"
+  "version": "1.1.3",
+  "apk_url": "https://github.com/wissem999/guess-the-object/releases/download/v1.1.3/app-release.apk",
+  "update_message": "Bug fixes and improvements"
 }
