@@ -33,7 +33,7 @@ class UpdateService {
   static const _updateJsonUrl =
       'https://raw.githubusercontent.com/wissem999/guess-the-object/main/update.json';
   static const _requestTimeout = Duration(seconds: 10);
-  static const _channel = MethodChannel('com.guesstheobject.apk_installer');
+  static const _channel = MethodChannel('guess.the_object/apk_installer');
 
   static Future<UpdateInfo?> checkForUpdate() async {
     if (kIsWeb) return null;
