@@ -75,18 +75,14 @@ class UpdateService {
       final filePath = '${tempDir.path}/guess_the_object_update.apk';
       final file = File(filePath);
 
-      // Delete old APK if exists
       if (await file.exists()) {
         await file.delete();
       }
 
-      onProgress?.call(0.01);
+      onProgress?.call(-1);
 
       final response = await http.get(Uri.parse(apkUrl)).timeout(
         const Duration(minutes: 10),
-        onTimeout: () async {
-          throw Exception('Download timed out');
-        },
       );
 
       if (response.statusCode != 200) return null;
@@ -95,7 +91,6 @@ class UpdateService {
 
       onProgress?.call(1.0);
 
-      // Verify file was actually written
       if (!await file.exists()) return null;
       final size = await file.length();
       if (size == 0) return null;
