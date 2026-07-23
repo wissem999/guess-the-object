@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "267529989039",
+    "firebase_url": "https://guess-the-object-2f17e-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "guess-the-object-2f17e",
     "storage_bucket": "guess-the-object-2f17e.firebasestorage.app"
   },
@@ -13,6 +14,14 @@
         }
       },
       "oauth_client": [
+        {
+          "client_id": "267529989039-vkops27q07ka2v3k0vqumos1i4k90kt8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.guesstheobject.guess_the_object",
+            "certificate_hash": "059279212d38057ee30570d26087877760b76e7f"
+          }
+        },
         {
           "client_id": "267529989039-fvdu9lgbq760vv7fih45r947h7ug4noi.apps.googleusercontent.com",
           "client_type": 3

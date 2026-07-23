@@ -110,15 +110,11 @@ jobs:
       - name: Update update.json
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          SHA1="${{ steps.print_sha.outputs.SHA1 }}"
-          SHA256="${{ steps.print_sha.outputs.SHA256 }}"
           cat > update.json << EOF
           {
             "version": "${VERSION}",
             "apk_url": "https://github.com/${{ github.repository }}/releases/download/v${VERSION}/app-release.apk",
-            "update_message": "Bug fixes and improvements",
-            "sha1": "${SHA1}",
-            "sha256": "${SHA256}"
+            "update_message": "Bug fixes and improvements"
           }
           EOF
           git config user.name "github-actions[bot]"
