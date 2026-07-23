@@ -43,6 +43,10 @@ jobs:
               -dname "CN=Wissem, OU=Dev, O=GuessTheObject, L=Tunis, ST=Tunis, C=TN"
           fi
 
+      - name: Print SHA-1 fingerprint
+        run: |
+          keytool -list -v -keystore keystore/release.jks -alias guess_the_object -storepass guessobject123 2>&1 | grep -E "SHA1|SHA256"
+
       - name: Create .env file
         run: |
           cat > .env << EOF

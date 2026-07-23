@@ -54,8 +54,10 @@ class AuthActions {
       return await _repository.signInWithGoogle();
     } on AuthException catch (e) {
       throw AuthFailure(_friendlyMessage(e.code, e.message));
+    } on AuthFailure {
+      rethrow;
     } catch (e) {
-      throw AuthFailure('Google sign-in failed: $e');
+      throw AuthFailure(e.toString().replaceAll('Exception: ', ''));
     }
   }
 

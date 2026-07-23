@@ -19,12 +19,12 @@ class FirebaseAuthDataSource {
     try {
       final account = await GoogleSignIn.instance.authenticate();
       if (account == null) {
-        throw firebase_auth.FirebaseAuthException(
-          code: 'google-sign-in-cancelled',
-          message: 'Sign-in was cancelled',
-        );
+        throw Exception('Sign-in was cancelled by user');
       }
       final authentication = await account.authentication;
+      if (authentication.idToken == null) {
+        throw Exception('Failed to get Google ID token');
+      }
       final credential = firebase_auth.GoogleAuthProvider.credential(
         idToken: authentication.idToken,
       );
@@ -32,10 +32,7 @@ class FirebaseAuthDataSource {
     } on firebase_auth.FirebaseAuthException {
       rethrow;
     } catch (e) {
-      throw firebase_auth.FirebaseAuthException(
-        code: 'google-sign-in-cancelled',
-        message: e.toString(),
-      );
+      throw Exception('Google sign-in error: $e');
     }
   }
 
