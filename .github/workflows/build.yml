@@ -44,8 +44,14 @@ jobs:
           fi
 
       - name: Print SHA-1 fingerprint
+        id: print_sha
         run: |
-          keytool -list -v -keystore keystore/release.jks -alias guess_the_object -storepass guessobject123 2>&1 | grep -E "SHA1|SHA256"
+          SHA1=$(keytool -list -v -keystore keystore/release.jks -alias guess_the_object -storepass guessobject123 2>&1 | grep "SHA1:" | sed 's/.*SHA1: //')
+          SHA256=$(keytool -list -v -keystore keystore/release.jks -alias guess_the_object -storepass guessobject123 2>&1 | grep "SHA256:" | sed 's/.*SHA256: //')
+          echo "SHA-1: $SHA1"
+          echo "SHA-256: $SHA256"
+          echo "SHA1=$SHA1" >> "$GITHUB_OUTPUT"
+          echo "SHA256=$SHA256" >> "$GITHUB_OUTPUT"
 
       - name: Create .env file
         run: |
@@ -104,11 +110,15 @@ jobs:
       - name: Update update.json
         run: |
           VERSION="${{ steps.version.outputs.version }}"
+          SHA1="${{ steps.print_sha.outputs.SHA1 }}"
+          SHA256="${{ steps.print_sha.outputs.SHA256 }}"
           cat > update.json << EOF
           {
             "version": "${VERSION}",
             "apk_url": "https://github.com/${{ github.repository }}/releases/download/v${VERSION}/app-release.apk",
-            "update_message": "Bug fixes and improvements"
+            "update_message": "Bug fixes and improvements",
+            "sha1": "${SHA1}",
+            "sha256": "${SHA256}"
           }
           EOF
           git config user.name "github-actions[bot]"
