@@ -107,6 +107,7 @@ class AuthRepositoryImpl implements AuthRepository {
       rating: dto.rating,
       peakRating: dto.peakRating,
       tier: dto.tier,
+      brainPoints: dto.brainPoints,
       seasonWins: dto.seasonWins,
       seasonLosses: dto.seasonLosses,
       createdAt: dto.createdAt,

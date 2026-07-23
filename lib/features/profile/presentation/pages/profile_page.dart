@@ -78,6 +78,13 @@ class ProfilePage extends ConsumerWidget {
                       _statItem('Peak Rating', '${player?.peakRating ?? 1000}'),
                     ],
                   ),
+                  const Divider(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _statItem('🧠 Brain Points', '${player?.brainPoints ?? 0}'),
+                    ],
+                  ),
                 ],
               ),
             ),

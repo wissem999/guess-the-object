@@ -8,6 +8,7 @@ class PlayerDto {
   final int rating;
   final int peakRating;
   final String tier;
+  final int brainPoints;
   final int seasonWins;
   final int seasonLosses;
   final DateTime createdAt;
@@ -22,6 +23,7 @@ class PlayerDto {
     this.rating = 1000,
     this.peakRating = 1000,
     this.tier = 'Bronze',
+    this.brainPoints = 0,
     this.seasonWins = 0,
     this.seasonLosses = 0,
     required this.createdAt,
@@ -38,6 +40,7 @@ class PlayerDto {
       rating: (json['rating'] as num?)?.toInt() ?? 1000,
       peakRating: (json['peakRating'] as num?)?.toInt() ?? 1000,
       tier: json['tier'] as String? ?? 'Bronze',
+      brainPoints: (json['brainPoints'] as num?)?.toInt() ?? 0,
       seasonWins: (json['seasonWins'] as num?)?.toInt() ?? 0,
       seasonLosses: (json['seasonLosses'] as num?)?.toInt() ?? 0,
       createdAt: (json['createdAt'] as dynamic).toDate(),
@@ -54,6 +57,7 @@ class PlayerDto {
         'rating': rating,
         'peakRating': peakRating,
         'tier': tier,
+        'brainPoints': brainPoints,
         'seasonWins': seasonWins,
         'seasonLosses': seasonLosses,
         'createdAt': createdAt,

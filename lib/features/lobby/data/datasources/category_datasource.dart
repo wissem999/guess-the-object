@@ -39,16 +39,21 @@ class FirestoreDataSource {
     String userId,
     int newRating,
     int peakRating,
-    String tier,
-  ) async {
-    await _firestore
-        .collection(FirebaseConstants.usersCollection)
-        .doc(userId)
-        .update({
+    String tier, {
+    int? brainPoints,
+  }) async {
+    final data = <String, dynamic>{
       FirebaseConstants.fieldRating: newRating,
       FirebaseConstants.fieldPeakRating: peakRating,
       FirebaseConstants.fieldTier: tier,
-    });
+    };
+    if (brainPoints != null) {
+      data[FirebaseConstants.fieldBrainPoints] = brainPoints;
+    }
+    await _firestore
+        .collection(FirebaseConstants.usersCollection)
+        .doc(userId)
+        .update(data);
   }
 
   // ── Categories ───────────────────────────────────────────

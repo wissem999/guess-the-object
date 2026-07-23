@@ -20,6 +20,7 @@ class FirebaseConstants {
   static const String fieldRating = 'rating';
   static const String fieldPeakRating = 'peakRating';
   static const String fieldTier = 'tier';
+  static const String fieldBrainPoints = 'brainPoints';
   static const String fieldFriendIds = 'friendIds';
   static const String fieldStatus = 'status';
 }

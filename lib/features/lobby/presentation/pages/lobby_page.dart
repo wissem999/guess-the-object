@@ -21,6 +21,11 @@ class LobbyPage extends ConsumerWidget {
             tooltip: 'Leaderboard',
           ),
           IconButton(
+            icon: const Icon(Icons.store),
+            onPressed: () => context.push('/store'),
+            tooltip: 'Store',
+          ),
+          IconButton(
             icon: const Icon(Icons.person),
             onPressed: () => context.push('/profile'),
             tooltip: 'Profile',
@@ -126,7 +131,7 @@ class LobbyPage extends ConsumerWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '${player.name} \u2022 ${player.rating} \u2022 ${player.tier}',
+                      '${player.name} \u2022 ${player.tier} \u2022 🧠 ${player.brainPoints}',
                       style: TextStyle(color: AppTheme.textSecondary),
                     ),
                   ],

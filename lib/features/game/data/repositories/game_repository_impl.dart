@@ -218,19 +218,32 @@ class GameRepositoryImpl implements GameRepository {
       final newWinnerRating = winnerDto.rating + change;
       final newLoserRating = loserDto.rating - change;
 
+      final oldWinnerTier = ELOCalculator.calculateTier(winnerDto.rating);
+      final newWinnerTier = ELOCalculator.calculateTier(newWinnerRating);
+      final winnerBrainReward = ELOCalculator.tierUpReward(oldWinnerTier, newWinnerTier);
+
+      final oldLoserTier = ELOCalculator.calculateTier(loserDto.rating);
+      final newLoserTier = ELOCalculator.calculateTier(newLoserRating);
+      final loserBrainReward = ELOCalculator.tierUpReward(oldLoserTier, newLoserTier);
+
+      final newWinnerBrainPoints = winnerDto.brainPoints + winnerBrainReward;
+      final newLoserBrainPoints = loserDto.brainPoints + loserBrainReward;
+
       await _firestore.updatePlayerRating(
         winnerId,
         newWinnerRating,
         newWinnerRating > winnerDto.peakRating
             ? newWinnerRating
             : winnerDto.peakRating,
-        ELOCalculator.calculateTier(newWinnerRating),
+        newWinnerTier,
+        brainPoints: newWinnerBrainPoints,
       );
       await _firestore.updatePlayerRating(
         loserId,
         newLoserRating,
         loserDto.peakRating,
-        ELOCalculator.calculateTier(newLoserRating),
+        newLoserTier,
+        brainPoints: newLoserBrainPoints,
       );
     } catch (_) {}
   }

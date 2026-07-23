@@ -8,6 +8,69 @@ import '../../../ranking/domain/entities/elo_calculator.dart';
 import '../../domain/entities/game_state.dart';
 import '../providers/game_providers.dart';
 
+class _TierChangeDisplay extends StatelessWidget {
+  final int ratingChange;
+  final int currentRating;
+  final String tier;
+
+  const _TierChangeDisplay({
+    required this.ratingChange,
+    required this.currentRating,
+    required this.tier,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = ELOCalculator.tierProgress(currentRating);
+    final nextThreshold = ELOCalculator.nextTierThreshold(currentRating);
+    final progressColor = ratingChange >= 0 ? AppTheme.success : AppTheme.error;
+
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(tier, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+            if (nextThreshold != 999999) ...[
+              const Text(' → ', style: TextStyle(fontSize: 14)),
+              Text(
+                ELOCalculator.calculateTier(nextThreshold),
+                style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          width: 200,
+          height: 8,
+          decoration: BoxDecoration(
+            color: AppTheme.cardBg,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: FractionallySizedBox(
+            alignment: Alignment.centerLeft,
+            widthFactor: progress,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [progressColor.withValues(alpha: 0.7), progressColor],
+                ),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '$currentRating / $nextThreshold',
+          style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+        ),
+      ],
+    );
+  }
+}
+
 class _ObjectReveal extends StatelessWidget {
   final GameState game;
   final String playerId;
@@ -165,6 +228,14 @@ class ResultPage extends ConsumerWidget {
                         ),
                       ),
                     ),
+                    if (player != null) ...[
+                      const SizedBox(height: 16),
+                      _TierChangeDisplay(
+                        ratingChange: ratingChange,
+                        currentRating: player.rating,
+                        tier: ELOCalculator.calculateTier(player.rating),
+                      ),
+                    ],
                     if (game.p1ObjectId.isNotEmpty && game.p2ObjectId.isNotEmpty)
                       _ObjectReveal(
                         game: game,

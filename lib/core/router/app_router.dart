@@ -15,6 +15,7 @@ import '../../features/ranking/presentation/pages/leaderboard_page.dart';
 import '../../features/ranking/presentation/pages/friends_page.dart';
 import '../../features/ranking/presentation/pages/add_friend_page.dart';
 import '../../features/report/presentation/pages/report_page.dart';
+import '../../features/store/presentation/pages/store_page.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -52,6 +53,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         reportedPlayerId: state.pathParameters['reportedPlayerId']!,
         categoryId: state.pathParameters['categoryId']!,
       )),
+      GoRoute(path: '/store', builder: (_, _) => const StorePage()),
     ],
   );
   ref.onDispose(router.dispose);

@@ -8,6 +8,7 @@ class Player {
   final int rating;
   final int peakRating;
   final String tier;
+  final int brainPoints;
   final int seasonWins;
   final int seasonLosses;
   final DateTime createdAt;
@@ -22,6 +23,7 @@ class Player {
     this.rating = 1000,
     this.peakRating = 1000,
     this.tier = 'Bronze',
+    this.brainPoints = 0,
     this.seasonWins = 0,
     this.seasonLosses = 0,
     required this.createdAt,
