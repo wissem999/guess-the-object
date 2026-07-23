@@ -10,7 +10,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:267529989039:android:569ad367f80e31cf559d5a",
         "android_client_info": {
-          "package_name": "com.guesstheobject.guess_the_object"
+          "package_name": "guess.the_object"
         }
       },
       "oauth_client": [
@@ -18,7 +18,7 @@
           "client_id": "267529989039-vkops27q07ka2v3k0vqumos1i4k90kt8.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.guesstheobject.guess_the_object",
+            "package_name": "guess.the_object",
             "certificate_hash": "059279212d38057ee30570d26087877760b76e7f"
           }
         },
