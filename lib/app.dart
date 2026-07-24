@@ -45,8 +45,9 @@ class _GuessTheObjectAppState extends ConsumerState<GuessTheObjectApp> {
 
     return MaterialApp.router(
       title: 'Guess The Object',
-      theme: AppTheme.light,
+      theme: AppTheme.dark,
       darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.dark,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
       builder: (childContext, child) {

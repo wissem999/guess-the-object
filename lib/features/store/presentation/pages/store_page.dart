@@ -101,8 +101,8 @@ class _RewardInfo extends StatelessWidget {
     final tierIcons = {
       'Silver': '🥈',
       'Gold': '🥇',
-      'Platinum': '💎',
-      'Diamond': '💠',
+      'Platinum': '⚡',
+      'Diamond': '💎',
       'Heroic': '⭐',
       'Grandmaster': '👑',
     };

@@ -65,7 +65,7 @@ class ProfilePage extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _statItem('Rating', '${player?.rating ?? 1000}'),
+                      _statItem('Rating', '${player?.rating ?? 600}'),
                       _statItem('Wins', '${player?.wins ?? 0}', AppTheme.success),
                       _statItem('Losses', '${player?.losses ?? 0}', AppTheme.error),
                     ],
@@ -75,7 +75,7 @@ class ProfilePage extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _statItem('Win Rate', '${player != null && player.totalGames > 0 ? (player.winRate * 100).round() : 0}%'),
-                      _statItem('Peak Rating', '${player?.peakRating ?? 1000}'),
+                      _statItem('Peak Rating', '${player?.peakRating ?? 600}'),
                     ],
                   ),
                   const Divider(height: 24),

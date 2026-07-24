@@ -147,7 +147,7 @@ class _AddFriendPageState extends ConsumerState<AddFriendPage> {
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
-                            '${user['rating'] ?? 1000} • ${user['tier'] ?? 'Bronze'}',
+                            '${user['rating'] ?? 600} • ${user['tier'] ?? 'Bronze'}',
                             style: TextStyle(
                               color: AppTheme.textSecondary,
                               fontSize: 12,

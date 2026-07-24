@@ -118,7 +118,7 @@ class FriendsPage extends ConsumerWidget {
                         style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                       ),
                       trailing: Text(
-                        '${f['rating'] ?? 1000}',
+                        '${f['rating'] ?? 600}',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),

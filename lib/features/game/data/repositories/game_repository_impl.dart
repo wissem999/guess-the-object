@@ -237,6 +237,7 @@ class GameRepositoryImpl implements GameRepository {
             : winnerDto.peakRating,
         newWinnerTier,
         brainPoints: newWinnerBrainPoints,
+        wins: winnerDto.wins + 1,
       );
       await _firestore.updatePlayerRating(
         loserId,
@@ -244,6 +245,7 @@ class GameRepositoryImpl implements GameRepository {
         loserDto.peakRating,
         newLoserTier,
         brainPoints: newLoserBrainPoints,
+        losses: loserDto.losses + 1,
       );
     } catch (_) {}
   }

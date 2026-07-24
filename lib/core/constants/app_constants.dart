@@ -14,7 +14,7 @@ class AppConstants {
 
   // ELO
   static const int eloKFactor = 32;
-  static const int eloStartRating = 1000;
+  static const int eloStartRating = 600;
   static const int eloUpsetMultiplier = 400;
 
   // Reconnection

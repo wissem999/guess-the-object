@@ -41,6 +41,8 @@ class FirestoreDataSource {
     int peakRating,
     String tier, {
     int? brainPoints,
+    int? wins,
+    int? losses,
   }) async {
     final data = <String, dynamic>{
       FirebaseConstants.fieldRating: newRating,
@@ -49,6 +51,12 @@ class FirestoreDataSource {
     };
     if (brainPoints != null) {
       data[FirebaseConstants.fieldBrainPoints] = brainPoints;
+    }
+    if (wins != null) {
+      data[FirebaseConstants.fieldWins] = wins;
+    }
+    if (losses != null) {
+      data[FirebaseConstants.fieldLosses] = losses;
     }
     await _firestore
         .collection(FirebaseConstants.usersCollection)
