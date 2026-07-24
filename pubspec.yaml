@@ -1,7 +1,7 @@
 name: guess_the_object
 description: "Real-time multiplayer guessing game. Two players, one category, different objects. Ask questions, guess the object, win the match."
 publish_to: 'none'
-version: 1.1.6+17
+version: 1.1.7+18
 
 environment:
   sdk: ^3.11.5

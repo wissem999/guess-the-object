@@ -13,8 +13,8 @@ class LeaderboardPage extends ConsumerWidget {
     'Bronze': '🥉',
     'Silver': '🥈',
     'Gold': '🥇',
-    'Platinum': '💎',
-    'Diamond': '💠',
+    'Platinum': '⚡',
+    'Diamond': '💎',
     'Heroic': '⭐',
     'Grandmaster': '👑',
   };
@@ -113,6 +113,8 @@ class LeaderboardPage extends ConsumerWidget {
               child: Text('Error: $e', style: TextStyle(color: AppTheme.error)),
             ),
           ),
+          const SizedBox(height: 16),
+          const _RankRequirementsCard(),
           const SizedBox(height: 24),
         ],
       ),
@@ -491,6 +493,70 @@ class _RankedPlayerCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _RankRequirementsCard extends StatelessWidget {
+  const _RankRequirementsCard();
+
+  static const _ranks = [
+    ('Bronze', '🥉', 0, 0xFFCD7F32),
+    ('Silver', '🥈', 800, 0xFFC0C0C0),
+    ('Gold', '🥇', 1200, 0xFFFFD700),
+    ('Platinum', '⚡', 1600, 0xFF00CED1),
+    ('Diamond', '💎', 2000, 0xFFB9F2FF),
+    ('Heroic', '⭐', 2500, 0xFFFF4444),
+    ('Grandmaster', '👑', 3200, 0xFFFFD700),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Rank Requirements',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          ),
+          const SizedBox(height: 10),
+          ..._ranks.map((r) {
+            final (name, icon, elo, color) = r;
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  Text(icon, style: const TextStyle(fontSize: 18)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: Color(color),
+                      ),
+                    ),
+                  ),
+                  Text(
+                    elo == 0 ? 'Start' : '$elo+ ELO',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
       ),
     );
   }

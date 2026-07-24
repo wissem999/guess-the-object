@@ -27,7 +27,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: '/lobby',
     refreshListenable: _authRefreshNotifier,
     redirect: (context, state) {
-      final user = ref.read(authStateProvider).valueOrNull;
+      final authAsync = ref.read(authStateProvider);
+
+      if (authAsync is AsyncLoading) return null;
+
+      final user = authAsync.valueOrNull;
       final onLogin = state.matchedLocation == '/login';
       final onEmailAuth = state.matchedLocation == '/email-auth';
       final isPublicRoute = onLogin || onEmailAuth;
