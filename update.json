@@ -1,5 +1,5 @@
 {
   "version": "1.1.9",
   "apk_url": "https://github.com/wissem999/guess-the-object/releases/download/v1.1.9/app-release.apk",
-  "update_message": "Bug fixes and improvements"
+  "update_message": "Critical game fixes: infinite questions, leave game forfeit, faster disconnect detection, fixed ghost Player account"
 }
