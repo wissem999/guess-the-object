@@ -18,7 +18,32 @@ class AuthRepositoryImpl implements AuthRepository {
       if (firebaseUser == null) return null;
       try {
         final dto = await _firestoreDataSource.getPlayer(firebaseUser.uid);
-        if (dto != null) return _toEntity(dto);
+        if (dto != null) {
+          if (dto.name == 'Player' || dto.name.isEmpty) {
+            final betterName = firebaseUser.displayName ??
+                _nameFromEmail(firebaseUser.email) ??
+                '';
+            if (betterName.isNotEmpty) {
+              await _firestoreDataSource.updatePlayerName(dto.id, betterName);
+              return _toEntity(PlayerDto(
+                id: dto.id,
+                name: betterName,
+                email: dto.email,
+                photoUrl: dto.photoUrl,
+                wins: dto.wins,
+                losses: dto.losses,
+                rating: dto.rating,
+                peakRating: dto.peakRating,
+                tier: dto.tier,
+                brainPoints: dto.brainPoints,
+                seasonWins: dto.seasonWins,
+                seasonLosses: dto.seasonLosses,
+                createdAt: dto.createdAt,
+              ));
+            }
+          }
+          return _toEntity(dto);
+        }
         await _handleSignIn(firebaseUser);
         final retry = await _firestoreDataSource.getPlayer(firebaseUser.uid);
         if (retry != null) return _toEntity(retry);
@@ -46,7 +71,9 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Player> signInWithEmail(String email, String password) async {
     try {
       final credential = await _authDataSource.signInWithEmail(email, password);
-      return await _handleSignIn(credential.user!);
+      final user = credential.user!;
+      final name = user.displayName ?? _nameFromEmail(email);
+      return await _handleSignIn(user, name: name);
     } on FirebaseAuthException catch (e) {
       throw AuthException(e.message ?? 'Sign-in failed', code: e.code);
     }
@@ -85,15 +112,27 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Player> _handleSignIn(User firebaseUser, {String? name}) async {
     final dto = await _firestoreDataSource.getPlayer(firebaseUser.uid);
     if (dto != null) return _toEntity(dto);
+    final resolvedName = name ?? firebaseUser.displayName ?? _nameFromEmail(firebaseUser.email) ?? '';
+    if (resolvedName.isEmpty) {
+      await _authDataSource.signOut();
+      throw AuthException('Could not determine your name. Please try again.');
+    }
     final newPlayer = Player(
       id: firebaseUser.uid,
-      name: name ?? firebaseUser.displayName ?? 'Player',
+      name: resolvedName,
       email: firebaseUser.email ?? '',
       photoUrl: firebaseUser.photoURL,
       createdAt: DateTime.now(),
     );
     await createProfile(newPlayer);
     return newPlayer;
+  }
+
+  String? _nameFromEmail(String? email) {
+    if (email == null || email.isEmpty) return null;
+    final local = email.split('@').first;
+    if (local.isEmpty) return null;
+    return local[0].toUpperCase() + local.substring(1);
   }
 
   Player _toEntity(PlayerDto dto) {

@@ -35,6 +35,13 @@ class FirestoreDataSource {
         .set(dto.toJson());
   }
 
+  Future<void> updatePlayerName(String userId, String name) async {
+    await _firestore
+        .collection(FirebaseConstants.usersCollection)
+        .doc(userId)
+        .update({'name': name});
+  }
+
   Future<void> updatePlayerRating(
     String userId,
     int newRating,

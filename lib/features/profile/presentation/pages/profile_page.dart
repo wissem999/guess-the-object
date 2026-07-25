@@ -31,7 +31,7 @@ class ProfilePage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  player?.name ?? 'Player',
+                  player?.name ?? '',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
