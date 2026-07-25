@@ -19,10 +19,14 @@ class AuthRepositoryImpl implements AuthRepository {
       try {
         final dto = await _firestoreDataSource.getPlayer(firebaseUser.uid);
         if (dto != null) return _toEntity(dto);
-        return await _handleSignIn(firebaseUser);
-      } catch (_) {
-        return null;
-      }
+        await _handleSignIn(firebaseUser);
+        final retry = await _firestoreDataSource.getPlayer(firebaseUser.uid);
+        if (retry != null) return _toEntity(retry);
+      } catch (_) {}
+      try {
+        await _authDataSource.signOut();
+      } catch (_) {}
+      return null;
     });
   }
 
