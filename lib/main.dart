@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'app.dart';
 
 String _env(String key) {
@@ -45,6 +47,14 @@ void main() async {
     await GoogleSignIn.instance.initialize(
       serverClientId: serverClientId.isNotEmpty ? serverClientId : null,
     );
+
+    final prefs = await SharedPreferences.getInstance();
+    final hasLaunchedBefore = prefs.getBool('has_launched_before') ?? false;
+    if (!hasLaunchedBefore) {
+      await FirebaseAuth.instance.signOut();
+      await GoogleSignIn.instance.signOut();
+      await prefs.setBool('has_launched_before', true);
+    }
   }
 
   runApp(const ProviderScope(child: GuessTheObjectApp()));
