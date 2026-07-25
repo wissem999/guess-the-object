@@ -19,14 +19,10 @@ class AuthRepositoryImpl implements AuthRepository {
       try {
         final dto = await _firestoreDataSource.getPlayer(firebaseUser.uid);
         if (dto != null) return _toEntity(dto);
-      } catch (_) {}
-      return Player(
-        id: firebaseUser.uid,
-        name: firebaseUser.displayName ?? 'Player',
-        email: firebaseUser.email ?? '',
-        photoUrl: firebaseUser.photoURL,
-        createdAt: DateTime.now(),
-      );
+        return await _handleSignIn(firebaseUser);
+      } catch (_) {
+        return null;
+      }
     });
   }
 

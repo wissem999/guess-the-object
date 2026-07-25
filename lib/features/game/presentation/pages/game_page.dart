@@ -16,14 +16,21 @@ class GamePage extends ConsumerStatefulWidget {
   ConsumerState<GamePage> createState() => _GamePageState();
 }
 
-class _GamePageState extends ConsumerState<GamePage> {
+class _GamePageState extends ConsumerState<GamePage> with WidgetsBindingObserver {
   final _questionCtrl = TextEditingController();
-  Timer? _reconnectTimer;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _markActive();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _markActive();
+    }
   }
 
   Future<void> _markActive() async {
@@ -34,7 +41,6 @@ class _GamePageState extends ConsumerState<GamePage> {
       final gameSnap = await rtdb.getGameSnapshot(widget.gameId);
       if (gameSnap == null) return;
       final player1Id = gameSnap['player1Id'] as String;
-      await rtdb.cancelGameOnDisconnect(widget.gameId);
       await rtdb.setPlayerActive(widget.gameId, player.id, player1Id);
     } catch (e) {
       if (mounted) {
@@ -51,8 +57,8 @@ class _GamePageState extends ConsumerState<GamePage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _questionCtrl.dispose();
-    _reconnectTimer?.cancel();
     super.dispose();
   }
 
@@ -121,7 +127,7 @@ class _GamePageState extends ConsumerState<GamePage> {
             actions: [
               _ConnectionIndicator(isOpponentActive: isOpponentActive),
               Container(
-                margin: const EdgeInsets.only(right: 12),
+                margin: const EdgeInsets.only(right: 8),
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
@@ -138,6 +144,11 @@ class _GamePageState extends ConsumerState<GamePage> {
                     fontSize: 12,
                   ),
                 ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.logout, size: 20),
+                tooltip: 'Leave Game',
+                onPressed: () => _showLeaveGameDialog(player?.id ?? ''),
               ),
             ],
           ),
@@ -243,6 +254,48 @@ class _GamePageState extends ConsumerState<GamePage> {
           ),
         );
       },
+    );
+  }
+
+  void _showLeaveGameDialog(String playerId) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.cardBg,
+        title: const Text('Leave Game?'),
+        content: const Text(
+          'If you leave, you will lose this game and your opponent will win.',
+          style: TextStyle(color: AppTheme.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Stay'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              try {
+                await ref.read(gameActionsProvider).forfeitGame(
+                  widget.gameId,
+                  playerId,
+                );
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to leave: $e'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
+            child: const Text('Leave & Forfeit'),
+          ),
+        ],
+      ),
     );
   }
 
