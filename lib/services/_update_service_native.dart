@@ -27,6 +27,18 @@ class UpdateInfo {
   }
 }
 
+class DownloadProgress {
+  final double fraction;
+  final int receivedBytes;
+  final int totalBytes;
+
+  const DownloadProgress({
+    required this.fraction,
+    required this.receivedBytes,
+    required this.totalBytes,
+  });
+}
+
 class UpdateService {
   UpdateService._();
 
@@ -66,7 +78,7 @@ class UpdateService {
   /// Downloads the APK and returns the file path on success, null on failure.
   static Future<String?> downloadApk(
     String apkUrl, {
-    void Function(double progress)? onProgress,
+    void Function(DownloadProgress progress)? onProgress,
   }) async {
     if (kIsWeb) return null;
 
@@ -79,40 +91,62 @@ class UpdateService {
         await file.delete();
       }
 
-      onProgress?.call(-1);
+      onProgress?.call(const DownloadProgress(
+        fraction: -1, receivedBytes: 0, totalBytes: 0,
+      ));
 
       final client = http.Client();
-      final request = http.Request('GET', Uri.parse(apkUrl));
-      final response = await client.send(request).timeout(
+      var request = http.Request('GET', Uri.parse(apkUrl));
+
+      var response = await client.send(request).timeout(
         const Duration(minutes: 10),
       );
+
+      int redirects = 0;
+      while ((response.statusCode == 301 || response.statusCode == 302 ||
+              response.statusCode == 303 || response.statusCode == 307 ||
+              response.statusCode == 308) && redirects < 5) {
+        final location = response.headers['location'];
+        if (location == null || location.isEmpty) {
+          client.close();
+          return null;
+        }
+        request = http.Request('GET', Uri.parse(location));
+        response = await client.send(request).timeout(
+          const Duration(minutes: 10),
+        );
+        redirects++;
+      }
 
       if (response.statusCode != 200) {
         client.close();
         return null;
       }
 
-      final contentLength = response.contentLength ?? 0;
+      final totalBytes = response.contentLength ?? 0;
       int received = 0;
       final sink = file.openWrite();
 
       await for (final chunk in response.stream) {
         sink.add(chunk);
         received += chunk.length;
-        if (contentLength > 0) {
-          onProgress?.call(received / contentLength);
-        }
+        onProgress?.call(DownloadProgress(
+          fraction: totalBytes > 0 ? received / totalBytes : -1,
+          receivedBytes: received,
+          totalBytes: totalBytes,
+        ));
       }
 
       await sink.flush();
       await sink.close();
       client.close();
 
-      onProgress?.call(1.0);
+      final fileSize = await file.length();
+      onProgress?.call(DownloadProgress(
+        fraction: 1.0, receivedBytes: fileSize, totalBytes: fileSize,
+      ));
 
-      if (!await file.exists()) return null;
-      final size = await file.length();
-      if (size == 0) return null;
+      if (fileSize == 0) return null;
 
       return filePath;
     } catch (_) {

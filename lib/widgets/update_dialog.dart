@@ -23,19 +23,43 @@ class _UpdateDialogState extends State<UpdateDialog> {
   bool _downloading = false;
   bool _installing = false;
   double _progress = 0.0;
+  int _receivedBytes = 0;
+  int _totalBytes = 0;
   String? _errorMessage;
+
+  String get _progressText {
+    if (_receivedBytes <= 0) return 'Downloading update...';
+    final r = (_receivedBytes / (1024 * 1024)).toStringAsFixed(1);
+    if (_totalBytes > 0) {
+      final t = (_totalBytes / (1024 * 1024)).toStringAsFixed(1);
+      return '$r MB / $t MB';
+    }
+    return '$r MB / ? MB';
+  }
+
+  String get _progressPercent {
+    if (_totalBytes <= 0) return '';
+    final p = (_progress.clamp(0.0, 1.0) * 100).round();
+    return ' ($p%)';
+  }
 
   Future<void> _startDownload() async {
     setState(() {
       _downloading = true;
       _progress = 0.0;
+      _receivedBytes = 0;
+      _totalBytes = 0;
       _errorMessage = null;
     });
 
     final filePath = await UpdateService.downloadApk(
       widget.updateInfo.apkUrl,
-      onProgress: (p) {
-        if (mounted) setState(() => _progress = p);
+      onProgress: (dp) {
+        if (mounted) setState(() {
+          _progress = dp.fraction;
+          _receivedBytes = dp.receivedBytes;
+          _totalBytes = dp.totalBytes;
+        });
       },
     );
 
@@ -164,9 +188,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
               ),
               const SizedBox(height: 10),
               Text(
-                _progress > 0
-                    ? 'Downloading... ${(_progress * 100).round()}%'
-                    : 'Downloading update...',
+                '${_progressText}${_progressPercent}',
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.white.withValues(alpha: 0.5),
