@@ -115,7 +115,7 @@ class _GamePageState extends ConsumerState<GamePage> with WidgetsBindingObserver
             pendingIdx >= 0 &&
             game.turns[pendingIdx].playerId != player?.id;
         final canAsk = isMyTurn && !needsAnswer && game.phase == GamePhase.playing;
-        final pendingTurnKey = needsAnswer ? 'turn_$pendingIdx' : null;
+        final pendingTurnKey = needsAnswer ? 'turn_${pendingIdx.toString().padLeft(4, '0')}' : null;
         final pendingQuestion = needsAnswer ? game.turns[pendingIdx].question : null;
 
         final opponentId = game.player1Id == player?.id ? game.player2Id : game.player1Id;
@@ -148,7 +148,7 @@ class _GamePageState extends ConsumerState<GamePage> with WidgetsBindingObserver
               IconButton(
                 icon: const Icon(Icons.logout, size: 20),
                 tooltip: 'Leave Game',
-                onPressed: () => _showLeaveGameDialog(player?.id ?? ''),
+                onPressed: () => _showLeaveGameDialog(player?.id ?? '', opponentId),
               ),
             ],
           ),
@@ -257,7 +257,7 @@ class _GamePageState extends ConsumerState<GamePage> with WidgetsBindingObserver
     );
   }
 
-  void _showLeaveGameDialog(String playerId) {
+  void _showLeaveGameDialog(String playerId, String opponentId) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -278,7 +278,7 @@ class _GamePageState extends ConsumerState<GamePage> with WidgetsBindingObserver
               try {
                 await ref.read(gameActionsProvider).forfeitGame(
                   widget.gameId,
-                  playerId,
+                  opponentId,
                 );
               } catch (e) {
                 if (mounted) {

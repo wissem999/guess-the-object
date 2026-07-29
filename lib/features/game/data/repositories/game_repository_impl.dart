@@ -68,7 +68,8 @@ class GameRepositoryImpl implements GameRepository {
 
       final now = DateTime.now().millisecondsSinceEpoch;
       final turnsMap = Map<String, dynamic>.from(dto.turns);
-      final turnKey = 'turn_${turnsMap.length}';
+      final turnIndex = turnsMap.length;
+      final turnKey = 'turn_${turnIndex.toString().padLeft(4, '0')}';
       final turnData = TurnDto(
         playerId: playerId,
         question: question,
